@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String?
+  role      String   @default("USER")
+  status    String   @default("INVITED")
+  createdAt DateTime @default(now())
+  requests  ActivityRequest[]
+  files     FileStore[]
+}
+
+model ActivityCategory {
+  id            Int      @id @default(autoincrement())
+  categoryName  String
+  activityType  String
+  assignedHours Float
+  isActive      Boolean  @default(true)
+  requests      ActivityRequest[]
+}
+
+model ActivityRequest {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  categoryId      Int
+  activityType    String
+  appliedHours    Float
+  description     String
+  evidenceFileUrl String?
+  status          String   @default("PENDING")
+  rejectedReason  String?
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+  category        ActivityCategory @relation(fields: [categoryId], references: [id])
+}
+
+model FileStore {
+  id           String   @id @default(uuid())
+  filename     String
+  mimeType     String
+  data         String   // Base64 encoded string
+  uploadedById Int?     // Nullable for backward compatibility
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+}
