@@ -16,7 +16,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
 
   return (
     <span className={className}>
-      <span className="badge-dot" />
+      <span className="badge-dot" aria-hidden="true" />
       {label}
     </span>
   );

@@ -67,15 +67,15 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" />
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" width="48" height="48" />
           <h1 className="auth-title gradient-text">광운알리미</h1>
           <p className="auth-subtitle">홍보대사 활동 시간관리</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
           {error && (
-            <div className="alert alert-error">
-              <span className="alert-icon">⚠️</span>
+            <div className="alert alert-error" role="alert" aria-live="polite">
+              <span className="alert-icon" aria-hidden="true">⚠️</span>
               {error}
             </div>
           )}
@@ -86,7 +86,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               className="form-input"
-              placeholder="email@kw.ac.kr"
+              placeholder="example@kw.ac.kr…"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -101,7 +101,7 @@ export default function LoginPage() {
               id="password"
               type="password"
               className="form-input"
-              placeholder="비밀번호를 입력하세요"
+              placeholder="••••••••…"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -117,8 +117,8 @@ export default function LoginPage() {
           >
             {loading ? (
               <span className="btn-loading">
-                <span className="loading-spinner-sm" />
-                로그인 중...
+                <span className="loading-spinner-sm" role="status" aria-live="polite" aria-label="로딩 중" />
+                로그인 중…
               </span>
             ) : (
               '로그인'

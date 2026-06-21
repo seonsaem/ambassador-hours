@@ -23,7 +23,7 @@ export default function MetricCard({
     <div className={`metric-card metric-card-${gradient}`}>
       <div className="metric-card-inner-wrap">
         <div className="metric-card-inner">
-          <div className="metric-card-icon">{iconMap[gradient]}</div>
+          <div className="metric-card-icon" aria-hidden="true">{iconMap[gradient]}</div>
           <div className="metric-card-content">
             <div className="metric-card-title">{title}</div>
             <div className="metric-card-value">

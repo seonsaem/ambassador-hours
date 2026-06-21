@@ -62,15 +62,15 @@ export default function SignupPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" />
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" width="48" height="48" />
           <h1 className="auth-title gradient-text">회원가입</h1>
           <p className="auth-subtitle">초대받은 이메일로 가입하세요</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
           {error && (
-            <div className="alert alert-error">
-              <span className="alert-icon">⚠️</span>
+            <div className="alert alert-error" role="alert" aria-live="polite">
+              <span className="alert-icon" aria-hidden="true">⚠️</span>
               {error}
             </div>
           )}
@@ -81,7 +81,7 @@ export default function SignupPage() {
               id="email"
               type="email"
               className="form-input"
-              placeholder="초대받은 이메일 주소"
+              placeholder="example@kw.ac.kr…"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -96,7 +96,7 @@ export default function SignupPage() {
               id="name"
               type="text"
               className="form-input"
-              placeholder="이름을 입력하세요"
+              placeholder="홍길동…"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -111,7 +111,7 @@ export default function SignupPage() {
               id="password"
               type="password"
               className="form-input"
-              placeholder="8자 이상 입력하세요"
+              placeholder="•••••••• (8자 이상)…"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -127,7 +127,7 @@ export default function SignupPage() {
               id="passwordConfirm"
               type="password"
               className="form-input"
-              placeholder="비밀번호를 다시 입력하세요"
+              placeholder="••••••••…"
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
               required
@@ -136,7 +136,7 @@ export default function SignupPage() {
               disabled={loading}
             />
             {passwordConfirm && password !== passwordConfirm && (
-              <span className="form-hint form-hint-error">비밀번호가 일치하지 않습니다</span>
+              <span className="form-hint form-hint-error" role="alert" aria-live="polite">비밀번호가 일치하지 않습니다</span>
             )}
           </div>
 
@@ -147,8 +147,8 @@ export default function SignupPage() {
           >
             {loading ? (
               <span className="btn-loading">
-                <span className="loading-spinner-sm" />
-                가입 중...
+                <span className="loading-spinner-sm" role="status" aria-live="polite" aria-label="로딩 중" />
+                가입 중…
               </span>
             ) : (
               '가입하기'

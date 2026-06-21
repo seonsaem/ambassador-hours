@@ -62,10 +62,10 @@ export default function Navbar() {
     return (
       <nav className="navbar">
         <span className="navbar-brand">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="navbar-logo" />
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="navbar-logo" width="28" height="28" />
           광운알리미
         </span>
-        <div style={{ width: 22, height: 22 }} className="loading-spinner" />
+        <div style={{ width: 22, height: 22 }} className="loading-spinner" role="status" aria-live="polite" aria-label="로딩 중" />
       </nav>
     );
   }
@@ -77,7 +77,7 @@ export default function Navbar() {
       <nav className="navbar">
         {/* Brand with logo mark */}
         <Link href="/dashboard" className="navbar-brand">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="navbar-logo" />
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="navbar-logo" width="28" height="28" />
           광운알리미
         </Link>
 
