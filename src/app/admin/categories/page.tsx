@@ -58,6 +58,7 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchCategories();
     }
   }, [status, session, fetchCategories]);
@@ -88,8 +89,8 @@ export default function CategoriesPage() {
       setNewType('OFFICIAL');
       setNewHours(1);
       await fetchCategories();
-    } catch (err: any) {
-      setError(err.message || '카테고리 추가 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '카테고리 추가 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(false);
     }
@@ -124,8 +125,8 @@ export default function CategoriesPage() {
 
       setEditId(null);
       await fetchCategories();
-    } catch (err: any) {
-      setError(err.message || '카테고리 수정 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '카테고리 수정 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(false);
     }
@@ -151,8 +152,31 @@ export default function CategoriesPage() {
       }
 
       await fetchCategories();
-    } catch (err: any) {
-      setError(err.message || '상태 변경 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '상태 변경 중 오류가 발생했습니다.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (catId: number) => {
+    if (!confirm('정말로 이 카테고리를 완전히 삭제하시겠습니까?')) return;
+    setActionLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/categories/${catId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to delete category');
+      }
+
+      await fetchCategories();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '카테고리 삭제 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(false);
     }
@@ -353,13 +377,22 @@ export default function CategoriesPage() {
                               수정
                             </button>
                             {cat.categoryName !== '기타' && (
-                              <button
-                                className={`btn btn-sm ${cat.isActive ? 'btn-danger' : 'btn-success'}`}
-                                onClick={() => handleToggleActive(cat)}
-                                disabled={actionLoading}
-                              >
-                                {cat.isActive ? '비활성화' : '활성화'}
-                              </button>
+                              <>
+                                <button
+                                  className={`btn btn-sm ${cat.isActive ? 'btn-danger' : 'btn-success'}`}
+                                  onClick={() => handleToggleActive(cat)}
+                                  disabled={actionLoading}
+                                >
+                                  {cat.isActive ? '비활성화' : '활성화'}
+                                </button>
+                                <button
+                                  className="btn btn-outline-danger btn-sm"
+                                  onClick={() => handleDeleteCategory(cat.id)}
+                                  disabled={actionLoading}
+                                >
+                                  삭제
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>

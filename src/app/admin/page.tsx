@@ -89,6 +89,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchData();
     }
   }, [status, session, fetchData]);
@@ -108,7 +109,7 @@ export default function AdminPage() {
     setError('');
 
     try {
-      const body: any = {};
+      const body: { activityType?: 'OFFICIAL' | 'AUTONOMOUS'; appliedHours?: number } = {};
       if (isEtc) {
         body.activityType = etcData.activityType;
         body.appliedHours = etcData.hours;
@@ -129,8 +130,8 @@ export default function AdminPage() {
       setRequests((prev) =>
         prev.map((r) => (r.id === req.id ? { ...updatedReq, user: r.user } : r))
       );
-    } catch (err: any) {
-      setError(err.message || '승인 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '승인 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -159,8 +160,8 @@ export default function AdminPage() {
       );
       setRejectModal(null);
       setRejectReason('');
-    } catch (err: any) {
-      setError(err.message || '반려 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '반려 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -178,8 +179,8 @@ export default function AdminPage() {
         throw new Error(data.error || 'Failed to delete');
       }
       setRequests((prev) => prev.filter((r) => r.id !== id));
-    } catch (err: any) {
-      setError(err.message || '삭제 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '삭제 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -203,7 +204,7 @@ export default function AdminPage() {
     });
   };
 
-  const updateEtcEdit = (reqId: number, field: string, value: any) => {
+  const updateEtcEdit = (reqId: number, field: 'activityType' | 'hours', value: 'OFFICIAL' | 'AUTONOMOUS' | number) => {
     setEtcEdits((prev) => {
       const existing = prev[reqId] || { activityType: 'OFFICIAL', hours: 1 };
       return {
@@ -211,7 +212,7 @@ export default function AdminPage() {
         [reqId]: {
           ...existing,
           [field]: value,
-        },
+        } as { activityType: 'OFFICIAL' | 'AUTONOMOUS'; hours: number },
       };
     });
   };
@@ -346,7 +347,7 @@ export default function AdminPage() {
                           <select
                             className="form-select"
                             value={etcEdits[req.id]?.activityType || 'OFFICIAL'}
-                            onChange={(e) => updateEtcEdit(req.id, 'activityType', e.target.value)}
+                            onChange={(e) => updateEtcEdit(req.id, 'activityType', e.target.value as 'OFFICIAL' | 'AUTONOMOUS')}
                             disabled={isThisLoading}
                           >
                             <option value="OFFICIAL">공식</option>

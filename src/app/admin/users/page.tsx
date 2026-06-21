@@ -66,6 +66,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchUsers();
     }
   }, [status, session, fetchUsers]);
@@ -96,8 +97,8 @@ export default function UsersPage() {
       setInviteEmail('');
       setInviteSuccess(`${inviteEmail.trim()} 초대가 완료되었습니다.`);
       await fetchUsers();
-    } catch (err: any) {
-      setError(err.message || '초대 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '초대 중 오류가 발생했습니다.');
     } finally {
       setInviteLoading(false);
     }
@@ -120,8 +121,8 @@ export default function UsersPage() {
       }
 
       await fetchUsers();
-    } catch (err: any) {
-      setError(err.message || '상태 변경 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '상태 변경 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -147,8 +148,8 @@ export default function UsersPage() {
       }
 
       await fetchUsers();
-    } catch (err: any) {
-      setError(err.message || '권한 변경 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '권한 변경 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -171,8 +172,8 @@ export default function UsersPage() {
       }
 
       await fetchUsers();
-    } catch (err: any) {
-      setError(err.message || '계정 삭제 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '계정 삭제 중 오류가 발생했습니다.');
     } finally {
       setActionLoading(null);
     }

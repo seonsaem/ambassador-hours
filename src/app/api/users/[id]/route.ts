@@ -126,6 +126,10 @@ export async function DELETE(
 
     // Use a transaction to delete all activity requests first (due to foreign key), then delete the user
     await prisma.$transaction([
+      prisma.fileStore.updateMany({
+        where: { uploadedById: user.id },
+        data: { uploadedById: null },
+      }),
       prisma.activityRequest.deleteMany({
         where: { userId: user.id },
       }),

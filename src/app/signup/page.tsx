@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -12,11 +12,6 @@ export default function SignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,8 +60,9 @@ export default function SignupPage() {
 
   return (
     <div className="auth-page">
-      <div className={`glass-card auth-card ${mounted ? 'auth-card-mounted' : ''}`}>
+      <div className="auth-card">
         <div className="auth-header">
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" />
           <h1 className="auth-title gradient-text">회원가입</h1>
           <p className="auth-subtitle">초대받은 이메일로 가입하세요</p>
         </div>
@@ -146,7 +142,7 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            className="btn btn-primary btn-full"
+            className="btn btn-primary btn-full btn-lg"
             disabled={loading || (!!passwordConfirm && password !== passwordConfirm)}
           >
             {loading ? (

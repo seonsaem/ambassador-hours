@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { error, session } = await requireAuth();
+    const { error, session, dbUser } = await requireAuth();
     if (error) return error;
 
     const { id } = await params;
@@ -34,7 +34,7 @@ export async function GET(
     }
 
     // GUARD: Only the owner or admin can view
-    const isAdmin = session!.user.role === 'ADMIN';
+    const isAdmin = dbUser?.role === 'ADMIN';
     if (!isAdmin && activityRequest.userId !== Number(session!.user.id)) {
       return NextResponse.json(
         { error: 'Forbidden' },
@@ -100,6 +100,25 @@ export async function PUT(
     const body = await request.json();
     const { description, evidenceFileUrl, categoryId } = body;
 
+    if (description !== undefined) {
+      if (typeof description !== 'string' || description.trim().length < 10 || description.length > 2000) {
+        return NextResponse.json(
+          { error: 'Description must be between 10 and 2000 characters long' },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (evidenceFileUrl !== undefined && evidenceFileUrl !== null && evidenceFileUrl !== '') {
+      const isValidUrl = /^\/api\/files\/[a-f0-9-]{36}$/.test(evidenceFileUrl);
+      if (!isValidUrl) {
+        return NextResponse.json(
+          { error: 'Invalid evidence file URL format' },
+          { status: 400 },
+        );
+      }
+    }
+
     // Build update data
     const updateData: Prisma.ActivityRequestUncheckedUpdateInput = {
       description: description || existingRequest.description,
@@ -156,7 +175,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { error, session } = await requireAuth();
+    const { error, session, dbUser } = await requireAuth();
     if (error) return error;
 
     const { id } = await params;
@@ -181,7 +200,7 @@ export async function DELETE(
     }
 
     // Check if user is admin
-    const isAdmin = session!.user.role === 'ADMIN';
+    const isAdmin = dbUser?.role === 'ADMIN';
 
     // GUARD: Approved requests are immutable for normal users
     if (!isAdmin && existingRequest.status === 'APPROVED') {

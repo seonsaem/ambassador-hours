@@ -1,6 +1,7 @@
 import { auth } from './auth';
 import { NextResponse } from 'next/server';
 import prisma from './prisma';
+import { Prisma } from '@prisma/client';
 
 interface UserSelectFields {
   status: boolean;
@@ -24,7 +25,7 @@ async function validateUser(selectFields: UserSelectFields) {
 
   const dbUser = (await prisma.user.findUnique({
     where: { id: Number(session.user.id) },
-    select: selectFields as any,
+    select: selectFields as Prisma.UserSelect,
   })) as DbUserResult | null;
 
   if (!dbUser || dbUser.status === 'BANNED') {
@@ -39,8 +40,8 @@ async function validateUser(selectFields: UserSelectFields) {
 }
 
 export async function requireAuth() {
-  const { error, session } = await validateUser({ status: true });
-  return { error, session };
+  const { error, session, dbUser } = await validateUser({ status: true, role: true });
+  return { error, session, dbUser };
 }
 
 export async function requireAdmin() {

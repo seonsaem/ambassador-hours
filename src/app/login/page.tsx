@@ -12,11 +12,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
@@ -70,10 +65,11 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page">
-      <div className={`glass-card auth-card ${mounted ? 'auth-card-mounted' : ''}`}>
+      <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title gradient-text">광운알리미 시간관리</h1>
-          <p className="auth-subtitle">PR Ambassador Time Tracking</p>
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" />
+          <h1 className="auth-title gradient-text">광운알리미</h1>
+          <p className="auth-subtitle">홍보대사 활동 시간관리</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -90,7 +86,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               className="form-input"
-              placeholder="email@example.com"
+              placeholder="email@kw.ac.kr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -116,7 +112,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="btn btn-primary btn-full"
+            className="btn btn-primary btn-full btn-lg"
             disabled={loading}
           >
             {loading ? (

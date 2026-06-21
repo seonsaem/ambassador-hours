@@ -29,7 +29,7 @@ interface Request {
 }
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +62,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchRequests();
     }
   }, [status, fetchRequests]);

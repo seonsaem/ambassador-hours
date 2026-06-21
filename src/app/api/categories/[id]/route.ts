@@ -94,13 +94,32 @@ export async function DELETE(
       );
     }
 
-    // Soft delete: set isActive to false
-    const updated = await prisma.activityCategory.update({
-      where: { id: categoryId },
-      data: { isActive: false },
+    // 기본 '기타' 카테고리는 삭제 불가 방어
+    if (existing.categoryName === '기타') {
+      return NextResponse.json(
+        { error: '기타 카테고리는 삭제할 수 없습니다.' },
+        { status: 400 },
+      );
+    }
+
+    // 참조하는 활동 신청 내역이 있는지 조회
+    const requestCount = await prisma.activityRequest.count({
+      where: { categoryId },
     });
 
-    return NextResponse.json(updated);
+    if (requestCount > 0) {
+      return NextResponse.json(
+        { error: '이 카테고리를 사용하는 활동 신청 내역이 존재하여 완전히 삭제할 수 없습니다. 대신 비활성화해 주세요.' },
+        { status: 400 },
+      );
+    }
+
+    // 하드 딜리트 수행
+    await prisma.activityCategory.delete({
+      where: { id: categoryId },
+    });
+
+    return NextResponse.json({ message: 'Category deleted successfully' });
   } catch (error) {
     console.error('DELETE /api/categories/[id] error:', error);
     return NextResponse.json(

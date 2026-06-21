@@ -26,23 +26,34 @@ export async function GET(
     }
 
     // Owner or admin verification
-    if (fileRecord.uploadedById !== null && session?.user) {
-      const currentUserId = Number(session.user.id);
-      const dbUser = await prisma.user.findUnique({
-        where: { id: currentUserId },
-        select: { role: true },
-      });
+    const currentUserId = Number(session!.user.id);
+    const dbUser = await prisma.user.findUnique({
+      where: { id: currentUserId },
+      select: { role: true },
+    });
+    const isAdmin = dbUser?.role === 'ADMIN';
 
+    if (fileRecord.uploadedById === null) {
+      // Legacy files without uploadedById are restricted to admins
+      if (!isAdmin) {
+        return new NextResponse('Forbidden', { status: 403 });
+      }
+    } else {
       const isOwner = fileRecord.uploadedById === currentUserId;
-      const isAdmin = dbUser?.role === 'ADMIN';
-
       if (!isOwner && !isAdmin) {
         return new NextResponse('Forbidden', { status: 403 });
       }
     }
 
     let buffer: Buffer;
-    const filePath = path.join(process.cwd(), fileRecord.data);
+    const uploadDir = path.resolve(process.cwd(), 'uploads');
+    const filePath = path.resolve(process.cwd(), fileRecord.data);
+
+    // Prevent Path Traversal by checking if the path is within the allowed upload directory
+    // or if the record's path is a relative path starting with 'uploads/'
+    if (!filePath.startsWith(uploadDir) && !fileRecord.data.startsWith('uploads/')) {
+      return new NextResponse('Forbidden path access', { status: 403 });
+    }
 
     if (fs.existsSync(filePath)) {
       buffer = await fs.promises.readFile(filePath);
@@ -55,12 +66,15 @@ export async function GET(
       }
     }
 
+    const encodedFilename = encodeURIComponent(fileRecord.filename).replace(/['()]/g, escape);
+
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type': fileRecord.mimeType,
-        'Content-Disposition': `inline; filename="${fileRecord.filename}"`,
+        'Content-Disposition': `inline; filename*=UTF-8''${encodedFilename}`,
         'Cache-Control': 'public, max-age=31536000, immutable',
+        'Content-Security-Policy': "default-src 'none'; sandbox",
       },
     });
   } catch (error) {

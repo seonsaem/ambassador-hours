@@ -53,7 +53,14 @@ export async function GET() {
         ...data,
       }));
 
-      const { requests, ...userData } = user;
+      const userData = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt,
+      };
       return { ...userData, officialHours, autonomousHours, totalApprovedHours, categoryBreakdown };
     });
 

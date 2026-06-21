@@ -17,8 +17,8 @@ const userNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   { href: '/admin', label: '대기열' },
-  { href: '/admin/categories', label: '카테고리 관리' },
-  { href: '/admin/users', label: '사용자 관리' },
+  { href: '/admin/categories', label: '카테고리' },
+  { href: '/admin/users', label: '사용자' },
 ];
 
 export default function Navbar() {
@@ -29,11 +29,6 @@ export default function Navbar() {
 
   const isAdmin = session?.user?.role === 'ADMIN';
   const navItems = isAdmin ? [...userNavItems, ...adminNavItems] : userNavItems;
-
-  // Close mobile nav on route change
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
 
   // Close mobile nav when clicking outside
   useEffect(() => {
@@ -48,8 +43,15 @@ export default function Navbar() {
 
     if (mobileOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      // Prevent body scroll when mobile menu is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = '';
+    };
   }, [mobileOpen]);
 
   const handleLogout = async () => {
@@ -59,8 +61,11 @@ export default function Navbar() {
   if (status === 'loading') {
     return (
       <nav className="navbar">
-        <span className="navbar-brand">광운알리미 시간관리</span>
-        <div style={{ width: 24, height: 24 }} className="loading-spinner" />
+        <span className="navbar-brand">
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="navbar-logo" />
+          광운알리미
+        </span>
+        <div style={{ width: 22, height: 22 }} className="loading-spinner" />
       </nav>
     );
   }
@@ -70,9 +75,10 @@ export default function Navbar() {
   return (
     <>
       <nav className="navbar">
-        {/* Brand */}
+        {/* Brand with logo mark */}
         <Link href="/dashboard" className="navbar-brand">
-          광운알리미 시간관리
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="navbar-logo" />
+          광운알리미
         </Link>
 
         {/* Desktop nav links */}
@@ -124,20 +130,39 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile nav dropdown */}
+      {/* Mobile nav - full-screen glass overlay */}
       <div
         ref={mobileNavRef}
         className={`mobile-nav${mobileOpen ? ' open' : ''}`}
       >
-        {navItems.map((item) => (
+        <div className="mobile-nav-user" style={{ padding: 'var(--space-md) var(--space-md) var(--space-sm) var(--space-md)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', marginBottom: 'var(--space-md)', animation: 'mobileLinkReveal 0.4s var(--ease-out-expo) both' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>로그인된 사용자</span>
+          <strong style={{ fontSize: '1.25rem', color: 'var(--text-primary)', display: 'block', marginTop: '4px' }}>{session.user?.name}</strong>
+        </div>
+        {navItems.map((item, idx) => (
           <Link
             key={item.href}
             href={item.href}
             className={`nav-link${pathname === item.href ? ' active' : ''}`}
+            onClick={() => setMobileOpen(false)}
+            style={{ animationDelay: `${(idx + 1) * 0.06}s` }}
           >
             {item.label}
           </Link>
         ))}
+        <button
+          onClick={() => { setMobileOpen(false); handleLogout(); }}
+          className="btn btn-outline"
+          style={{
+            margin: 'var(--space-xl) var(--space-md) 0 var(--space-md)',
+            borderColor: 'rgba(239, 68, 68, 0.3)',
+            color: '#ef4444',
+            animation: 'mobileLinkReveal 0.5s var(--ease-out-expo) both',
+            animationDelay: `${(navItems.length + 1) * 0.06}s`
+          }}
+        >
+          로그아웃
+        </button>
       </div>
     </>
   );

@@ -4,10 +4,10 @@ import { requireAuth } from '@/lib/guards';
 
 export async function GET() {
   try {
-    const { error, session } = await requireAuth();
+    const { error, session, dbUser } = await requireAuth();
     if (error) return error;
 
-    const isAdmin = session!.user.role === 'ADMIN';
+    const isAdmin = dbUser?.role === 'ADMIN';
 
     const requests = await prisma.activityRequest.findMany({
       where: isAdmin ? {} : { userId: Number(session!.user.id) },
@@ -50,11 +50,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (typeof description !== 'string' || description.trim().length < 10) {
+    if (typeof description !== 'string' || description.trim().length < 10 || description.length > 2000) {
       return NextResponse.json(
-        { error: 'Description must be at least 10 characters long' },
+        { error: 'Description must be between 10 and 2000 characters long' },
         { status: 400 },
       );
+    }
+
+    if (evidenceFileUrl) {
+      const isValidUrl = /^\/api\/files\/[a-f0-9-]{36}$/.test(evidenceFileUrl);
+      if (!isValidUrl) {
+        return NextResponse.json(
+          { error: 'Invalid evidence file URL format' },
+          { status: 400 },
+        );
+      }
     }
 
     // Fetch category

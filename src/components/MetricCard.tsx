@@ -21,13 +21,15 @@ export default function MetricCard({
 }: MetricCardProps) {
   return (
     <div className={`metric-card metric-card-${gradient}`}>
-      <div className="metric-card-inner">
-        <div className="metric-card-icon">{iconMap[gradient]}</div>
-        <div className="metric-card-content">
-          <div className="metric-card-title">{title}</div>
-          <div className="metric-card-value">
-            {value.toFixed(1)}
-            <span className="metric-card-unit">{unit}</span>
+      <div className="metric-card-inner-wrap">
+        <div className="metric-card-inner">
+          <div className="metric-card-icon">{iconMap[gradient]}</div>
+          <div className="metric-card-content">
+            <div className="metric-card-title">{title}</div>
+            <div className="metric-card-value">
+              {value.toFixed(1)}
+              <span className="metric-card-unit">{unit}</span>
+            </div>
           </div>
         </div>
       </div>
