@@ -188,20 +188,41 @@ export default function BulkCreatePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">카테고리</label>
-                  <select
-                    className="form-select"
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-                    disabled={submitting}
-                    style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
-                  >
-                    <option value="">카테고리를 선택하세요</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.categoryName}
-                      </option>
-                    ))}
-                  </select>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <select
+                      className="form-select"
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
+                      disabled={submitting}
+                      style={{ 
+                        width: '100%',
+                        background: 'rgba(5,5,8,0.3)', 
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        appearance: 'none',
+                        WebkitAppearance: 'none',
+                        MozAppearance: 'none',
+                        paddingRight: '40px'
+                      }}
+                    >
+                      <option value="">카테고리를 선택하세요</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.categoryName}
+                        </option>
+                      ))}
+                    </select>
+                    <div 
+                      style={{ 
+                        position: 'absolute', 
+                        right: '16px', 
+                        pointerEvents: 'none', 
+                        color: 'var(--text-muted)',
+                        fontSize: '0.65rem'
+                      }}
+                    >
+                      ▼
+                    </div>
+                  </div>
                 </div>
 
                 {selectedCategory && (

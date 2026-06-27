@@ -156,21 +156,41 @@ export default function NewRequestPage() {
               {categoriesLoading ? (
                 <div className="skeleton skeleton-input" />
               ) : (
-                <select
-                  id="category"
-                  className="form-select"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-                  required
-                  disabled={loading}
-                >
-                  <option value="">카테고리를 선택하세요</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.categoryName}
-                    </option>
-                  ))}
-                </select>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+                  <select
+                    id="category"
+                    className="form-select"
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
+                    required
+                    disabled={loading}
+                    style={{
+                      width: '100%',
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      paddingRight: '40px'
+                    }}
+                  >
+                    <option value="">카테고리를 선택하세요</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.categoryName}
+                      </option>
+                    ))}
+                  </select>
+                  <div 
+                    style={{ 
+                      position: 'absolute', 
+                      right: '16px', 
+                      pointerEvents: 'none', 
+                      color: 'var(--text-muted)',
+                      fontSize: '0.65rem'
+                    }}
+                  >
+                    ▼
+                  </div>
+                </div>
               )}
             </div>
 

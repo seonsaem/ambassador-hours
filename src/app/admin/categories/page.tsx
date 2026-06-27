@@ -247,16 +247,54 @@ export default function CategoriesPage() {
                 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">활동 유형</label>
-                  <select
-                    className="form-select"
-                    value={newType}
-                    onChange={(e) => setNewType(e.target.value as 'OFFICIAL' | 'AUTONOMOUS')}
-                    disabled={actionLoading}
-                    style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
+                  <div 
+                    style={{ 
+                      display: 'flex', 
+                      background: 'rgba(5,5,8,0.3)', 
+                      borderRadius: 'var(--radius-md)', 
+                      padding: '4px', 
+                      border: '1px solid rgba(255,255,255,0.06)' 
+                    }}
                   >
-                    <option value="OFFICIAL">공식 활동 (정기/의무)</option>
-                    <option value="AUTONOMOUS">자율 활동 (비정기/선택)</option>
-                  </select>
+                    <button
+                      type="button"
+                      onClick={() => setNewType('OFFICIAL')}
+                      disabled={actionLoading}
+                      style={{
+                        flex: 1,
+                        padding: '10px 0',
+                        borderRadius: 'calc(var(--radius-md) - 2px)',
+                        background: newType === 'OFFICIAL' ? 'rgba(255,255,255,0.07)' : 'transparent',
+                        color: newType === 'OFFICIAL' ? 'var(--text-primary)' : 'var(--text-muted)',
+                        border: 'none',
+                        fontSize: '0.85rem',
+                        fontWeight: newType === 'OFFICIAL' ? 600 : 500,
+                        cursor: 'pointer',
+                        transition: 'all 200ms cubic-bezier(0.16, 1, 0.3, 1)'
+                      }}
+                    >
+                      공식 활동
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewType('AUTONOMOUS')}
+                      disabled={actionLoading}
+                      style={{
+                        flex: 1,
+                        padding: '10px 0',
+                        borderRadius: 'calc(var(--radius-md) - 2px)',
+                        background: newType === 'AUTONOMOUS' ? 'rgba(255,255,255,0.07)' : 'transparent',
+                        color: newType === 'AUTONOMOUS' ? 'var(--text-primary)' : 'var(--text-muted)',
+                        border: 'none',
+                        fontSize: '0.85rem',
+                        fontWeight: newType === 'AUTONOMOUS' ? 600 : 500,
+                        cursor: 'pointer',
+                        transition: 'all 200ms cubic-bezier(0.16, 1, 0.3, 1)'
+                      }}
+                    >
+                      자율 활동
+                    </button>
+                  </div>
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
@@ -332,15 +370,52 @@ export default function CategoriesPage() {
                           </div>
                           <div>
                             <label className="form-label" style={{ fontSize: '0.7rem' }}>활동유형</label>
-                            <select
-                              className="form-select form-select-sm"
-                              value={editType}
-                              onChange={(e) => setEditType(e.target.value as 'OFFICIAL' | 'AUTONOMOUS')}
-                              style={{ background: 'rgba(5,5,8,0.5)' }}
+                            <div 
+                              style={{ 
+                                display: 'flex', 
+                                background: 'rgba(5,5,8,0.5)', 
+                                borderRadius: 'var(--radius-sm)', 
+                                padding: '2px', 
+                                border: '1px solid rgba(255,255,255,0.06)' 
+                              }}
                             >
-                              <option value="OFFICIAL">공식</option>
-                              <option value="AUTONOMOUS">자율</option>
-                            </select>
+                              <button
+                                type="button"
+                                onClick={() => setEditType('OFFICIAL')}
+                                style={{
+                                  flex: 1,
+                                  padding: '5px 0',
+                                  borderRadius: 'calc(var(--radius-sm) - 1px)',
+                                  background: editType === 'OFFICIAL' ? 'rgba(255,255,255,0.07)' : 'transparent',
+                                  color: editType === 'OFFICIAL' ? 'var(--text-primary)' : 'var(--text-muted)',
+                                  border: 'none',
+                                  fontSize: '0.75rem',
+                                  fontWeight: editType === 'OFFICIAL' ? 600 : 500,
+                                  cursor: 'pointer',
+                                  transition: 'all 200ms ease'
+                                }}
+                              >
+                                공식
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditType('AUTONOMOUS')}
+                                style={{
+                                  flex: 1,
+                                  padding: '5px 0',
+                                  borderRadius: 'calc(var(--radius-sm) - 1px)',
+                                  background: editType === 'AUTONOMOUS' ? 'rgba(255,255,255,0.07)' : 'transparent',
+                                  color: editType === 'AUTONOMOUS' ? 'var(--text-primary)' : 'var(--text-muted)',
+                                  border: 'none',
+                                  fontSize: '0.75rem',
+                                  fontWeight: editType === 'AUTONOMOUS' ? 600 : 500,
+                                  cursor: 'pointer',
+                                  transition: 'all 200ms ease'
+                                }}
+                              >
+                                자율
+                              </button>
+                            </div>
                           </div>
                           <div>
                             <label className="form-label" style={{ fontSize: '0.7rem' }}>배정시간</label>
