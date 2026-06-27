@@ -31,6 +31,7 @@ export default function CategoriesPage() {
   const [editName, setEditName] = useState('');
   const [editType, setEditType] = useState<'OFFICIAL' | 'AUTONOMOUS'>('OFFICIAL');
   const [editHours, setEditHours] = useState<number>(1);
+  const [listFilter, setListFilter] = useState<'ALL' | 'OFFICIAL' | 'AUTONOMOUS'>('ALL');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -331,15 +332,53 @@ export default function CategoriesPage() {
           {/* Right Column: Category List (col-span-7) */}
           <div className="glass-card" style={{ gridColumn: 'span 7', padding: '6px', borderRadius: 'var(--bezel-outer-radius)', background: 'var(--bezel-outer-bg)', border: '1px solid var(--bezel-outer-ring)' }}>
             <div className="glass-card-inner" style={{ borderRadius: 'var(--bezel-inner-radius)', padding: 'var(--space-xl)', background: 'var(--bezel-inner-bg)', boxShadow: 'var(--bezel-inner-highlight)' }}>
-              <div className="flex justify-between items-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-                <h3 className="card-title" style={{ fontSize: '1.25rem', marginBottom: 0 }}>
-                  등록된 카테고리
-                </h3>
-                <span className="badge badge-outline" style={{ fontSize: '0.75rem' }}>총 {categories.length}개</span>
+              <div className="flex justify-between items-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
+                <div>
+                  <h3 className="card-title" style={{ fontSize: '1.25rem', marginBottom: '2px' }}>
+                    등록된 카테고리
+                  </h3>
+                  <span className="badge badge-outline" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
+                    총 {categories.filter(c => listFilter === 'ALL' ? true : c.activityType === listFilter).length}개
+                  </span>
+                </div>
+
+                {/* Filter Tabs */}
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    background: 'rgba(5,5,8,0.4)', 
+                    borderRadius: 'var(--radius-sm)', 
+                    padding: '2px', 
+                    border: '1px solid rgba(255,255,255,0.05)' 
+                  }}
+                >
+                  {(['ALL', 'OFFICIAL', 'AUTONOMOUS'] as const).map((filter) => (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => setListFilter(filter)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 'calc(var(--radius-sm) - 1px)',
+                        background: listFilter === filter ? 'rgba(255,255,255,0.07)' : 'transparent',
+                        color: listFilter === filter ? 'var(--text-primary)' : 'var(--text-muted)',
+                        border: 'none',
+                        fontSize: '0.75rem',
+                        fontWeight: listFilter === filter ? 600 : 500,
+                        cursor: 'pointer',
+                        transition: 'all 200ms ease'
+                      }}
+                    >
+                      {filter === 'ALL' ? '전체' : filter === 'OFFICIAL' ? '공식' : '자율'}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                {categories.map((cat) => (
+                {categories
+                  .filter((cat) => listFilter === 'ALL' ? true : cat.activityType === listFilter)
+                  .map((cat) => (
                   <div 
                     key={cat.id} 
                     className="category-item-row"

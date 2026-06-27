@@ -220,41 +220,94 @@ export default function NewRequestPage() {
                         animation: 'slideDown 0.2s var(--ease-out-expo)'
                       }}
                     >
-                      {categories.map((cat) => {
-                        const isCurrent = cat.id === categoryId;
-                        return (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => {
-                              setCategoryId(cat.id);
-                              setDropdownOpen(false);
-                            }}
-                            style={{
-                              width: '100%',
-                              display: 'block',
-                              padding: '10px 14px',
-                              background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
-                              color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
-                              border: 0,
-                              borderRadius: 'var(--radius-sm)',
-                              fontSize: '0.85rem',
-                              fontWeight: isCurrent ? 600 : 500,
-                              textAlign: 'left',
-                              cursor: 'pointer',
-                              transition: 'all 150ms ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isCurrent) e.currentTarget.style.background = 'transparent';
-                            }}
-                          >
-                            {cat.categoryName}
-                          </button>
-                        );
-                      })}
+                      {/* 공식 활동 그룹 */}
+                      {categories.filter(c => c.activityType === 'OFFICIAL').length > 0 && (
+                        <>
+                          <div style={{ padding: '6px 12px 2px 12px', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            공식 활동 (정기/의무)
+                          </div>
+                          {categories.filter(c => c.activityType === 'OFFICIAL').map((cat) => {
+                            const isCurrent = cat.id === categoryId;
+                            return (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                  setCategoryId(cat.id);
+                                  setDropdownOpen(false);
+                                }}
+                                style={{
+                                  width: '100%',
+                                  display: 'block',
+                                  padding: '8px 14px',
+                                  background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
+                                  color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
+                                  border: 0,
+                                  borderRadius: 'var(--radius-sm)',
+                                  fontSize: '0.85rem',
+                                  fontWeight: isCurrent ? 600 : 500,
+                                  textAlign: 'left',
+                                  cursor: 'pointer',
+                                  transition: 'all 150ms ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isCurrent) e.currentTarget.style.background = 'transparent';
+                                }}
+                              >
+                                {cat.categoryName}
+                              </button>
+                            );
+                          })}
+                          <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '6px 8px' }} />
+                        </>
+                      )}
+
+                      {/* 자율 활동 그룹 */}
+                      {categories.filter(c => c.activityType === 'AUTONOMOUS').length > 0 && (
+                        <>
+                          <div style={{ padding: '6px 12px 2px 12px', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>
+                            자율 활동 (비정기/선택)
+                          </div>
+                          {categories.filter(c => c.activityType === 'AUTONOMOUS').map((cat) => {
+                            const isCurrent = cat.id === categoryId;
+                            return (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                  setCategoryId(cat.id);
+                                  setDropdownOpen(false);
+                                }}
+                                style={{
+                                  width: '100%',
+                                  display: 'block',
+                                  padding: '8px 14px',
+                                  background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
+                                  color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
+                                  border: 0,
+                                  borderRadius: 'var(--radius-sm)',
+                                  fontSize: '0.85rem',
+                                  fontWeight: isCurrent ? 600 : 500,
+                                  textAlign: 'left',
+                                  cursor: 'pointer',
+                                  transition: 'all 150ms ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isCurrent) e.currentTarget.style.background = 'transparent';
+                                }}
+                              >
+                                {cat.categoryName}
+                              </button>
+                            );
+                          })}
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
