@@ -285,7 +285,6 @@ export default function CategoriesPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>카테고리명</th>
                   <th>활동유형</th>
                   <th>배정시간</th>
@@ -298,7 +297,6 @@ export default function CategoriesPage() {
                   <tr key={cat.id} className={!cat.isActive ? 'row-inactive' : ''}>
                     {editId === cat.id ? (
                       <>
-                        <td>{cat.id}</td>
                         <td>
                           <input
                             type="text"
@@ -352,7 +350,6 @@ export default function CategoriesPage() {
                       </>
                     ) : (
                       <>
-                        <td>{cat.id}</td>
                         <td className={!cat.isActive ? 'text-strikethrough' : ''}>
                           {cat.categoryName}
                         </td>
