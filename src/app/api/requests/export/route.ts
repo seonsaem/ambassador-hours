@@ -27,13 +27,13 @@ export async function GET() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('시간 관리 총합');
 
-    // Enable grid lines & freeze panes (first row and first 2 columns: Name, Email)
+    // Enable grid lines & freeze panes (first row and first 1 column: Name)
     worksheet.views = [
       {
         state: 'frozen',
-        xSplit: 2,
+        xSplit: 1,
         ySplit: 1,
-        activeCell: 'C2',
+        activeCell: 'B2',
         showGridLines: true,
       },
     ];
@@ -42,7 +42,7 @@ export async function GET() {
     const categoryHeaders = categories.map(
       (c) => `${c.categoryName}\n(${c.activityType === 'OFFICIAL' ? '공식' : '자율'})`
     );
-    const headers = ['이름', '이메일', ...categoryHeaders, '공식 합계', '자율 합계', '총 시간'];
+    const headers = ['이름', ...categoryHeaders, '공식 합계', '자율 합계', '총 시간'];
 
     const headerRow = worksheet.addRow(headers);
     headerRow.height = 36; // 헤더 높이 여유있게 조정
@@ -56,7 +56,7 @@ export async function GET() {
       let bgColor = '1A2340';
 
       // 공식/자율 합계 및 총 시간은 차별화된 색상 적용 (Gold 계열)
-      const totalColIndexStart = 3 + categories.length; // 1:이름, 2:이메일, 그 다음 카테고리들
+      const totalColIndexStart = 2 + categories.length; // 1:이름, 그 다음 카테고리들
       if (colNumber >= totalColIndexStart) {
         bgColor = 'B09A5C'; // Gold
       }
@@ -94,7 +94,6 @@ export async function GET() {
 
       const rowData = [
         user.name,
-        user.email,
         ...categoryValues,
         officialHours,
         autonomousHours,
@@ -120,13 +119,13 @@ export async function GET() {
         // 데이터 정렬 및 숫자 포맷
         if (colNumber === 1) {
           cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        } else if (colNumber > 2) {
+        } else if (colNumber > 1) {
           // 숫자 컬럼
           cell.alignment = { vertical: 'middle', horizontal: 'right' };
           cell.numFmt = '0.0'; // 소수점 한자리 표시
           
           // 공식/자율 합계 및 총 시간 컬럼 볼드 처리 및 옅은 배경
-          const totalColIndexStart = 3 + categories.length;
+          const totalColIndexStart = 2 + categories.length;
           if (colNumber >= totalColIndexStart) {
             cell.font = { name: '맑은 고딕', size: 10, bold: true };
             cell.fill = {
