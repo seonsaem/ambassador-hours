@@ -503,7 +503,7 @@ export default function CategoriesPage() {
                     ) : (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-md)' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          <span style={{ fontSize: '1.05rem', fontWeight: 700, color: cat.activityType === 'OFFICIAL' ? '#c084fc' : '#2dd4bf' }}>
                             {cat.categoryName}
                           </span>
                           <div style={{ display: 'flex', gap: 'var(--space-xs)', alignItems: 'center' }}>
