@@ -308,7 +308,7 @@ export default function BulkCreatePage() {
                   신청 중…
                 </span>
               ) : (
-                `${selectedUsers.size}명에게 일괄 신청`
+                `${selectedUsers.size}명 일괄 신청`
               )}
             </button>
           </div>
