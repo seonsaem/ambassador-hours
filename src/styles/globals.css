@@ -123,7 +123,7 @@
   --transition-extra:  800ms var(--ease-out-expo);
 
   /* ─ Navbar ─ */
-  --navbar-height: 56px;
+  --navbar-height: 64px;
   --navbar-top-offset: 16px;
 
   /* ─ Fonts ─ */
@@ -775,7 +775,7 @@ a:hover {
 }
 
 .navbar-logo {
-  height: 28px;
+  height: 84px;
   width: auto;
   object-fit: contain;
   margin-right: 2px;
@@ -794,10 +794,10 @@ a:hover {
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 7px 14px;
+  padding: 10px 20px;
   border-radius: var(--radius-full);
-  font-size: 0.82rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--text-secondary);
   text-decoration: none;
   transition: all var(--transition-fast);
@@ -1880,7 +1880,7 @@ a:hover {
 .auth-card {
   width: 100%;
   max-width: 440px;
-  padding: var(--space-2xl) var(--space-xl);
+  padding: var(--space-md) var(--space-xl);
   border-radius: var(--radius-2xl);
   background: var(--bezel-outer-bg);
   border: 1px solid var(--bezel-outer-ring);
@@ -1890,7 +1890,12 @@ a:hover {
 
 .auth-header {
   text-align: center;
-  margin-bottom: var(--space-xl);
+  margin-bottom: -20px;
+}
+
+.auth-header-signup {
+  margin-bottom: var(--space-xl) !important;
+  padding-top: var(--space-lg);
 }
 
 .auth-logo-mark {
@@ -1911,10 +1916,15 @@ a:hover {
 }
 
 .auth-logo {
-  height: 90px;
-  width: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 400px;
+  height: 400px;
   object-fit: contain;
-  margin-bottom: var(--space-md);
+  margin-top: -10px;
+  margin-bottom: -20px;
+  transform: translateX(-6px);
   filter: drop-shadow(0 4px 16px rgba(176, 154, 92, 0.25));
 }
 
@@ -2490,6 +2500,78 @@ a:hover {
   .auth-card {
     padding: var(--space-xl) var(--space-md);
     border-radius: var(--radius-xl);
+  }
+}
+
+/* ── Bulk Create User Grid ────────────────────────────────── */
+.bulk-user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.5rem;
+}
+
+.bulk-user-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.bulk-user-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.bulk-user-selected {
+  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.bulk-user-selected:hover {
+  background: rgba(139, 92, 246, 0.12);
+}
+
+.bulk-user-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.bulk-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.bulk-user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bulk-user-email {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 600px) {
+  .bulk-user-grid {
+    grid-template-columns: 1fr;
   }
 }
 

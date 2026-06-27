@@ -13,7 +13,12 @@ export async function GET() {
       where: isAdmin ? {} : { userId: Number(session!.user.id) },
       include: {
         category: true,
-        ...(isAdmin ? { user: { select: { id: true, name: true, email: true } } } : {}),
+        ...(isAdmin
+          ? {
+              user: { select: { id: true, name: true, email: true } },
+              createdBy: { select: { id: true, name: true, email: true } },
+            }
+          : {}),
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -50,9 +55,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (typeof description !== 'string' || description.trim().length < 10 || description.length > 2000) {
+    if (typeof description !== 'string' || description.trim().length < 5 || description.length > 2000) {
       return NextResponse.json(
-        { error: 'Description must be between 10 and 2000 characters long' },
+        { error: 'Description must be between 5 and 2000 characters long' },
         { status: 400 },
       );
     }
@@ -110,6 +115,7 @@ export async function POST(request: NextRequest) {
         description,
         evidenceFileUrl: evidenceFileUrl || null,
         status: 'PENDING',
+        createdById: Number(session!.user.id),
       },
       include: { category: true },
     });

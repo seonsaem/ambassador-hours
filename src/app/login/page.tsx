@@ -67,9 +67,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" width="48" height="48" />
-          <h1 className="auth-title gradient-text">광운알리미</h1>
-          <p className="auth-subtitle">홍보대사 활동 시간관리</p>
+          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" width="400" height="400" />
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -86,7 +84,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               className="form-input"
-              placeholder="example@kw.ac.kr…"
+              placeholder="example@kw.ac.kr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -101,7 +99,7 @@ export default function LoginPage() {
               id="password"
               type="password"
               className="form-input"
-              placeholder="••••••••…"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

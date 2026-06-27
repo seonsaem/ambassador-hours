@@ -13,6 +13,7 @@ interface NavItem {
 const userNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/dashboard/new', label: '활동 신청' },
+  { href: '/dashboard/bulk', label: '통합 신청' },
 ];
 
 const adminNavItems: NavItem[] = [
@@ -61,10 +62,6 @@ export default function Navbar() {
   if (status === 'loading') {
     return (
       <nav className="navbar">
-        <span className="navbar-brand">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="navbar-logo" width="28" height="28" />
-          광운알리미
-        </span>
         <div style={{ width: 22, height: 22 }} className="loading-spinner" role="status" aria-live="polite" aria-label="로딩 중" />
       </nav>
     );
@@ -75,11 +72,6 @@ export default function Navbar() {
   return (
     <>
       <nav className="navbar">
-        {/* Brand with logo mark */}
-        <Link href="/dashboard" className="navbar-brand">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="navbar-logo" width="28" height="28" />
-          광운알리미
-        </Link>
 
         {/* Desktop nav links */}
         <ul className="nav-links">

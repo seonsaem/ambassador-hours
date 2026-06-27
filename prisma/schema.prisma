@@ -15,7 +15,8 @@ model User {
   role      String   @default("USER")
   status    String   @default("INVITED")
   createdAt DateTime @default(now())
-  requests  ActivityRequest[]
+  requests  ActivityRequest[] @relation("UserRequests")
+  createdRequests ActivityRequest[] @relation("CreatedRequests")
   files     FileStore[]
 }
 
@@ -38,9 +39,12 @@ model ActivityRequest {
   evidenceFileUrl String?
   status          String   @default("PENDING")
   rejectedReason  String?
+  bulkLabel       String?
   createdAt       DateTime @default(now())
-  user            User     @relation(fields: [userId], references: [id])
+  user            User     @relation("UserRequests", fields: [userId], references: [id])
   category        ActivityCategory @relation(fields: [categoryId], references: [id])
+  createdById     Int?
+  createdBy       User?    @relation("CreatedRequests", fields: [createdById], references: [id])
 }
 
 model FileStore {

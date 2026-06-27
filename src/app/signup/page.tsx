@@ -61,8 +61,7 @@ export default function SignupPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-header">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" width="48" height="48" />
+        <div className="auth-header auth-header-signup">
           <h1 className="auth-title gradient-text">회원가입</h1>
           <p className="auth-subtitle">초대받은 이메일로 가입하세요</p>
         </div>
@@ -81,7 +80,7 @@ export default function SignupPage() {
               id="email"
               type="email"
               className="form-input"
-              placeholder="example@kw.ac.kr…"
+              placeholder="example@kw.ac.kr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -96,7 +95,7 @@ export default function SignupPage() {
               id="name"
               type="text"
               className="form-input"
-              placeholder="홍길동…"
+              placeholder="00기 000"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -111,7 +110,7 @@ export default function SignupPage() {
               id="password"
               type="password"
               className="form-input"
-              placeholder="•••••••• (8자 이상)…"
+              placeholder="•••••••• (8자 이상)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -127,7 +126,7 @@ export default function SignupPage() {
               id="passwordConfirm"
               type="password"
               className="form-input"
-              placeholder="••••••••…"
+              placeholder="••••••••"
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
               required
@@ -142,7 +141,7 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            className="btn btn-primary btn-full btn-lg"
+            className="btn btn-primary btn-full btn-lg mt-md"
             disabled={loading || (!!passwordConfirm && password !== passwordConfirm)}
           >
             {loading ? (

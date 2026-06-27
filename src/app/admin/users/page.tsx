@@ -40,6 +40,11 @@ export default function UsersPage() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteSuccess, setInviteSuccess] = useState('');
 
+  // Bulk delete state
+  const [bulkDeleteModal, setBulkDeleteModal] = useState(false);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState('');
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
@@ -200,6 +205,29 @@ export default function UsersPage() {
     );
   };
 
+  const handleBulkDelete = async () => {
+    if (bulkDeleteConfirm !== '전체 삭제') return;
+    setBulkDeleteLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/requests/bulk-delete', { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || '전체 삭제 실패');
+      }
+      const data = await res.json();
+      setBulkDeleteModal(false);
+      setBulkDeleteConfirm('');
+      alert(`${data.deletedCount}건의 기록이 삭제되었습니다.`);
+      await fetchUsers(); // Refresh user data to reflect deleted hours
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '전체 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setBulkDeleteLoading(false);
+    }
+  };
+
   if (status === 'loading' || loading) {
     return (
       <>
@@ -229,13 +257,38 @@ export default function UsersPage() {
       <div className="container">
         <div className="page-header">
           <h1 className="page-title">사용자 관리</h1>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {users.length === 0 ? (
+            <button
+              className="btn btn-outline"
+              disabled
+              style={{ gap: '0.4rem' }}
+            >
+              📊 엑셀 내보내기
+            </button>
+          ) : (
+            <button
+              className="btn btn-outline"
+              onClick={() => { window.location.href = '/api/requests/export'; }}
+              style={{ gap: '0.4rem' }}
+            >
+              📊 엑셀 내보내기
+            </button>
+          )}
+            <button
+              className="btn btn-outline-danger"
+              onClick={() => { setBulkDeleteModal(true); setBulkDeleteConfirm(''); }}
+            >
+              🗑️ 전체 삭제
+            </button>
+          </div>
         </div>
 
         {error && (
           <div className="alert alert-error">
             <span className="alert-icon">⚠️</span>
             {error}
-            <button className="alert-dismiss" onClick={() => setError('')}>✕</button>
+            <button className="alert-dismiss" onClick={() => setError('')} aria-label="알림 닫기">✕</button>
           </div>
         )}
 
@@ -243,7 +296,7 @@ export default function UsersPage() {
           <div className="alert alert-success">
             <span className="alert-icon">✅</span>
             {inviteSuccess}
-            <button className="alert-dismiss" onClick={() => setInviteSuccess('')}>✕</button>
+            <button className="alert-dismiss" onClick={() => setInviteSuccess('')} aria-label="알림 닫기">✕</button>
           </div>
         )}
 
@@ -253,27 +306,34 @@ export default function UsersPage() {
           <form onSubmit={handleInvite} className="invite-form">
             <div className="form-row">
               <div className="form-group form-group-flex">
-                <label className="form-label">이름</label>
+                <label htmlFor="inviteName" className="form-label">이름</label>
                 <input
                   type="text"
+                  id="inviteName"
+                  name="inviteName"
                   className="form-input"
-                  placeholder="이름"
+                  placeholder="예: 홍길동…"
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
                   required
                   disabled={inviteLoading}
+                  autoComplete="name"
                 />
               </div>
               <div className="form-group form-group-flex">
-                <label className="form-label">이메일</label>
+                <label htmlFor="inviteEmail" className="form-label">이메일</label>
                 <input
                   type="email"
+                  id="inviteEmail"
+                  name="inviteEmail"
                   className="form-input"
-                  placeholder="email@example.com"
+                  placeholder="예: email@example.com…"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   required
                   disabled={inviteLoading}
+                  autoComplete="email"
+                  spellCheck={false}
                 />
               </div>
               <div className="form-group form-group-flex form-group-action">
@@ -481,6 +541,63 @@ export default function UsersPage() {
           </div>
         </div>
       </div>
+
+      {/* Bulk Delete Confirmation Modal */}
+      {bulkDeleteModal && (
+        <div className="modal-overlay" onClick={() => setBulkDeleteModal(false)}>
+          <div className="modal glass-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">⚠️ 전체 기록 삭제</h3>
+              <button className="modal-close" onClick={() => setBulkDeleteModal(false)} aria-label="모달 닫기">✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="alert alert-error" style={{ marginBottom: 'var(--space-md)' }}>
+                <span className="alert-icon">🚨</span>
+                이 작업은 되돌릴 수 없습니다. 모든 사용자의 활동 기록이 영구적으로 삭제됩니다.
+              </div>
+              <div className="form-group">
+                <label htmlFor="bulkDeleteConfirm" className="form-label">
+                  확인하려면 아래에 <strong>전체 삭제</strong>를 입력하세요
+                </label>
+                <input
+                  type="text"
+                  id="bulkDeleteConfirm"
+                  name="bulkDeleteConfirm"
+                  className="form-input"
+                  value={bulkDeleteConfirm}
+                  onChange={(e) => setBulkDeleteConfirm(e.target.value)}
+                  placeholder="전체 삭제"
+                  autoFocus
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-outline"
+                onClick={() => setBulkDeleteModal(false)}
+                disabled={bulkDeleteLoading}
+              >
+                취소
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteConfirm !== '전체 삭제' || bulkDeleteLoading}
+              >
+                {bulkDeleteLoading ? (
+                  <span className="btn-loading">
+                    <span className="loading-spinner-sm" />
+                    삭제 중…
+                  </span>
+                ) : (
+                  '전체 삭제 확인'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

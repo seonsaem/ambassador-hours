@@ -75,8 +75,8 @@ export default function NewRequestPage() {
       setError('카테고리를 선택해주세요.');
       return;
     }
-    if (description.length < 10) {
-      setError('활동 설명은 10자 이상 입력해주세요.');
+    if (description.length < 5) {
+      setError('활동 설명은 5자 이상 입력해주세요.');
       return;
     }
 
@@ -138,7 +138,7 @@ export default function NewRequestPage() {
       <Navbar />
       <div className="container container-sm">
         <div className="page-header">
-          <h1 className="page-title">새 활동 신청</h1>
+          <h1 className="page-title">활동 신청</h1>
         </div>
 
         <div className="glass-card form-card">
@@ -201,16 +201,16 @@ export default function NewRequestPage() {
               <textarea
                 id="description"
                 className="form-textarea"
-                placeholder="활동 내용을 상세하게 작성해주세요 (최소 10자)"
+                placeholder="활동 내용을 상세하게 작성해주세요 (최소 5자)"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={5}
                 required
-                minLength={10}
+                minLength={5}
                 disabled={loading}
               />
               <span className="form-hint">
-                {description.length}/10 자 이상
+                {description.length}/5 자 이상
               </span>
             </div>
 

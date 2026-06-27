@@ -184,7 +184,7 @@ export default function DashboardPage() {
             <p>홍보대사 활동 내역과 승인된 시간을 관리합니다.</p>
           </div>
           <Link href="/dashboard/new" className="btn btn-primary">
-            + 새 활동 신청
+            + 활동 신청
           </Link>
         </div>
 
@@ -306,7 +306,7 @@ export default function DashboardPage() {
                 onChange={(e) => setResubmitDesc(e.target.value)}
                 rows={4}
                 required
-                minLength={10}
+                minLength={5}
               />
             </div>
             <div className="form-group">
@@ -331,7 +331,7 @@ export default function DashboardPage() {
               <button
                 className="btn btn-primary"
                 onClick={handleResubmit}
-                disabled={resubmitLoading || resubmitDesc.length < 10}
+                disabled={resubmitLoading || resubmitDesc.length < 5}
               >
                 {resubmitLoading ? (
                   <span className="btn-loading">
@@ -348,7 +348,7 @@ export default function DashboardPage() {
       </Modal>
 
       {/* Floating Action Button (mobile) */}
-      <Link href="/dashboard/new" className="fab" aria-label="새 활동 신청">
+      <Link href="/dashboard/new" className="fab" aria-label="활동 신청">
         +
       </Link>
     </>
