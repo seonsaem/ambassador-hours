@@ -61,7 +61,9 @@ export default function UsersPage() {
       const res = await fetch('/api/users');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setUsers(data);
+      const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
+      const sorted = data.sort((a: any, b: any) => collator.compare(a.name, b.name));
+      setUsers(sorted);
     } catch {
       setError('사용자 목록을 불러오는 중 오류가 발생했습니다.');
     } finally {

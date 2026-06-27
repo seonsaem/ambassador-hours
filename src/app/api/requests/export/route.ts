@@ -14,15 +14,17 @@ export async function GET() {
     });
 
     // Fetch all users with approved requests including category info
-    const users = await prisma.user.findMany({
+    const usersData = await prisma.user.findMany({
       include: {
         requests: {
           where: { status: 'APPROVED' },
           select: { activityType: true, appliedHours: true, categoryId: true },
         },
       },
-      orderBy: { name: 'asc' },
     });
+
+    const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
+    const users = usersData.sort((a, b) => collator.compare(a.name, b.name));
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('시간 관리 총합');

@@ -69,8 +69,10 @@ export default function BulkCreatePage() {
       if (!catRes.ok || !userRes.ok) throw new Error('Failed to fetch');
       const catData = await catRes.json();
       const userData = await userRes.json();
+      const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
+      const sortedUsers = userData.sort((a: any, b: any) => collator.compare(a.name, b.name));
       setCategories(catData.filter((c: Category) => c.isActive && c.categoryName !== '기타'));
-      setUsers(userData);
+      setUsers(sortedUsers);
     } catch {
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
