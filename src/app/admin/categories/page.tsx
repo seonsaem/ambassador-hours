@@ -211,7 +211,6 @@ export default function CategoriesPage() {
       <div className="container" style={{ maxWidth: '1300px' }}>
         <div className="section-header flex justify-between items-center mb-xl">
           <div>
-            <span className="badge badge-purple" style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.7rem', padding: '4px 12px', marginBottom: '8px' }}>Admin Console</span>
             <h1 className="page-title">카테고리 설정</h1>
             <p className="text-secondary" style={{ fontSize: '0.9rem', marginTop: '4px' }}>활동 유형에 따른 배정 시간을 관리하고 활성화 상태를 지정합니다.</p>
           </div>
