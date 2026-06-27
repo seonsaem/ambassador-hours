@@ -387,23 +387,10 @@ export default function CategoriesPage() {
                       flexDirection: 'column',
                       gap: 'var(--space-sm)',
                       padding: 'var(--space-md)',
-                      background: !cat.isActive 
-                        ? 'rgba(255,255,255,0.005)' 
-                        : cat.activityType === 'OFFICIAL'
-                          ? 'rgba(168, 85, 247, 0.02)'
-                          : 'rgba(20, 184, 166, 0.02)',
-                      border: !cat.isActive
-                        ? '1px solid rgba(255,255,255,0.03)'
-                        : cat.activityType === 'OFFICIAL'
-                          ? '1px solid rgba(168, 85, 247, 0.15)'
-                          : '1px solid rgba(20, 184, 166, 0.15)',
+                      background: cat.isActive ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.005)',
+                      border: '1px solid rgba(255,255,255,0.04)',
                       borderRadius: 'var(--radius-md)',
-                      opacity: cat.isActive ? 1 : 0.5,
-                      boxShadow: cat.isActive 
-                        ? cat.activityType === 'OFFICIAL'
-                          ? '0 4px 20px rgba(168, 85, 247, 0.02)' 
-                          : '0 4px 20px rgba(20, 184, 166, 0.02)'
-                        : 'none',
+                      opacity: cat.isActive ? 1 : 0.6,
                       transition: 'all 300ms var(--ease-spring)',
                     }}
                   >
@@ -503,7 +490,7 @@ export default function CategoriesPage() {
                     ) : (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-md)' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ fontSize: '1.05rem', fontWeight: 700, color: cat.activityType === 'OFFICIAL' ? '#c084fc' : '#2dd4bf' }}>
+                          <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                             {cat.categoryName}
                           </span>
                           <div style={{ display: 'flex', gap: 'var(--space-xs)', alignItems: 'center' }}>

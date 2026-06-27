@@ -47,7 +47,7 @@ export async function GET() {
     const headerRow = worksheet.addRow(headers);
     headerRow.height = 36; // 헤더 높이 여유있게 조정
 
-    // 헤더 스타일링 (Deep Navy #1A2340 테마)
+    // 헤더 스타일링 (Deep Navy #1A2340 테마 및 유형별 색상 적용)
     headerRow.eachCell((cell, colNumber) => {
       cell.font = { name: '맑은 고딕', size: 10, bold: true, color: { argb: 'FFFFFF' } };
       cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
@@ -55,10 +55,18 @@ export async function GET() {
       // 기본 헤더 배경: Navy
       let bgColor = '1A2340';
 
-      // 공식/자율 합계 및 총 시간은 차별화된 색상 적용 (Gold 계열)
       const totalColIndexStart = 2 + categories.length; // 1:이름, 그 다음 카테고리들
-      if (colNumber >= totalColIndexStart) {
-        bgColor = 'B09A5C'; // Gold
+      if (colNumber === 1) {
+        bgColor = '1A2340'; // Navy for Name
+      } else if (colNumber >= totalColIndexStart) {
+        bgColor = 'B09A5C'; // Gold for Totals
+      } else {
+        // Categories 색상 차별화 (공식: 옅은 보라 #4A3E72, 자율: 옅은 청록 #1F665E)
+        const catIdx = colNumber - 2;
+        const cat = categories[catIdx];
+        if (cat) {
+          bgColor = cat.activityType === 'OFFICIAL' ? '4A3E72' : '1F665E';
+        }
       }
 
       cell.fill = {
