@@ -208,7 +208,7 @@ export default function CategoriesPage() {
   return (
     <>
       <Navbar />
-      <div className="container" style={{ maxWidth: '1300px' }}>
+      <div className="container">
         <div className="section-header flex justify-between items-center mb-xl">
           <div>
             <h1 className="page-title">카테고리 설정</h1>

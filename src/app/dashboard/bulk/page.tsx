@@ -169,7 +169,7 @@ export default function BulkCreatePage() {
   return (
     <>
       <Navbar />
-      <div className="container" style={{ maxWidth: '1300px' }}>
+      <div className="container">
         <div className="section-header flex justify-between items-center mb-xl">
           <div>
             <h1 className="page-title">통합 신청</h1>
