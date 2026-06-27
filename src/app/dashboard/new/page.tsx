@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
@@ -25,6 +25,21 @@ export default function NewRequestPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  // Custom Dropdown state
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -156,40 +171,92 @@ export default function NewRequestPage() {
               {categoriesLoading ? (
                 <div className="skeleton skeleton-input" />
               ) : (
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <select
-                    id="category"
-                    className="form-select"
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-                    required
-                    disabled={loading}
+                <div ref={dropdownRef} style={{ position: 'relative', width: '100%' }}>
+                  <button
+                    type="button"
+                    onClick={() => !loading && setDropdownOpen((prev) => !prev)}
                     style={{
                       width: '100%',
-                      appearance: 'none',
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'none',
-                      paddingRight: '40px'
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                      background: 'rgba(5,5,8,0.3)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 'var(--radius-md)',
+                      color: categoryId ? 'var(--text-primary)' : 'var(--text-muted)',
+                      fontSize: '0.9rem',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 200ms ease'
                     }}
                   >
-                    <option value="">카테고리를 선택하세요</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.categoryName}
-                      </option>
-                    ))}
-                  </select>
-                  <div 
-                    style={{ 
-                      position: 'absolute', 
-                      right: '16px', 
-                      pointerEvents: 'none', 
-                      color: 'var(--text-muted)',
-                      fontSize: '0.65rem'
-                    }}
-                  >
-                    ▼
-                  </div>
+                    <span>
+                      {categoryId 
+                        ? categories.find(c => c.id === categoryId)?.categoryName 
+                        : '카테고리를 선택하세요'}
+                    </span>
+                    <span style={{ fontSize: '0.6rem', transition: 'transform 200ms ease', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', color: 'var(--text-muted)' }}>
+                      ▼
+                    </span>
+                  </button>
+
+                  {dropdownOpen && (
+                    <div 
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 6px)',
+                        left: 0,
+                        width: '100%',
+                        background: 'rgba(10, 16, 30, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 'var(--radius-md)',
+                        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.5)',
+                        zIndex: 100,
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        padding: '4px',
+                        animation: 'slideDown 0.2s var(--ease-out-expo)'
+                      }}
+                    >
+                      {categories.map((cat) => {
+                        const isCurrent = cat.id === categoryId;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setCategoryId(cat.id);
+                              setDropdownOpen(false);
+                            }}
+                            style={{
+                              width: '100%',
+                              display: 'block',
+                              padding: '10px 14px',
+                              background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
+                              color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
+                              border: 0,
+                              borderRadius: 'var(--radius-sm)',
+                              fontSize: '0.85rem',
+                              fontWeight: isCurrent ? 600 : 500,
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              transition: 'all 150ms ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isCurrent) e.currentTarget.style.background = 'transparent';
+                            }}
+                          >
+                            {cat.categoryName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
@@ -38,6 +38,21 @@ export default function BulkCreatePage() {
 
   // Confirm modal
   const [confirmModal, setConfirmModal] = useState(false);
+
+  // Custom Dropdown state
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -188,40 +203,88 @@ export default function BulkCreatePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">카테고리</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
-                    <select
-                      className="form-select"
-                      value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-                      disabled={submitting}
-                      style={{ 
+                  <div ref={dropdownRef} style={{ position: 'relative', width: '100%' }}>
+                    <button
+                      type="button"
+                      onClick={() => !submitting && setDropdownOpen((prev) => !prev)}
+                      style={{
                         width: '100%',
-                        background: 'rgba(5,5,8,0.3)', 
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '12px 16px',
+                        background: 'rgba(5,5,8,0.3)',
                         border: '1px solid rgba(255,255,255,0.06)',
-                        appearance: 'none',
-                        WebkitAppearance: 'none',
-                        MozAppearance: 'none',
-                        paddingRight: '40px'
+                        borderRadius: 'var(--radius-md)',
+                        color: selectedCategory ? 'var(--text-primary)' : 'var(--text-muted)',
+                        fontSize: '0.9rem',
+                        cursor: submitting ? 'not-allowed' : 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 200ms ease'
                       }}
                     >
-                      <option value="">카테고리를 선택하세요</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.categoryName}
-                        </option>
-                      ))}
-                    </select>
-                    <div 
-                      style={{ 
-                        position: 'absolute', 
-                        right: '16px', 
-                        pointerEvents: 'none', 
-                        color: 'var(--text-muted)',
-                        fontSize: '0.65rem'
-                      }}
-                    >
-                      ▼
-                    </div>
+                      <span>{selectedCategory ? selectedCategory.categoryName : '카테고리를 선택하세요'}</span>
+                      <span style={{ fontSize: '0.6rem', transition: 'transform 200ms ease', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', color: 'var(--text-muted)' }}>
+                        ▼
+                      </span>
+                    </button>
+
+                    {dropdownOpen && (
+                      <div 
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 6px)',
+                          left: 0,
+                          width: '100%',
+                          background: 'rgba(10, 16, 30, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: 'var(--radius-md)',
+                          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.5)',
+                          zIndex: 100,
+                          maxHeight: '200px',
+                          overflowY: 'auto',
+                          padding: '4px',
+                          animation: 'slideDown 0.2s var(--ease-out-expo)'
+                        }}
+                      >
+                        {categories.map((cat) => {
+                          const isCurrent = cat.id === categoryId;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => {
+                                setCategoryId(cat.id);
+                                setDropdownOpen(false);
+                              }}
+                              style={{
+                                width: '100%',
+                                display: 'block',
+                                padding: '10px 14px',
+                                background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
+                                color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
+                                border: 0,
+                                borderRadius: 'var(--radius-sm)',
+                                fontSize: '0.85rem',
+                                fontWeight: isCurrent ? 600 : 500,
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                transition: 'all 150ms ease'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isCurrent) e.currentTarget.style.background = 'transparent';
+                              }}
+                            >
+                              {cat.categoryName}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
 
