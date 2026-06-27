@@ -302,7 +302,7 @@ export default function BulkCreatePage() {
                 )}
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label htmlFor="bulkLabel" className="form-label">일괄 신청 라벨 (선택)</label>
+                  <label htmlFor="bulkLabel" className="form-label">활동명</label>
                   <input
                     type="text"
                     id="bulkLabel"
@@ -553,7 +553,7 @@ export default function BulkCreatePage() {
                   </div>
                   {bulkLabel.trim() && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>일괄 신청 라벨</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>활동명</span>
                       <strong style={{ fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>{bulkLabel.trim()}</strong>
                     </div>
                   )}
