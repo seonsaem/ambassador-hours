@@ -157,9 +157,7 @@ export default function BulkCreatePage() {
       <div className="container" style={{ maxWidth: '1300px' }}>
         <div className="section-header flex justify-between items-center mb-xl">
           <div>
-            <span className="badge badge-purple" style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.7rem', padding: '4px 12px', marginBottom: '8px' }}>Ambassador Admin</span>
             <h1 className="page-title">통합 신청</h1>
-            <p className="text-secondary" style={{ fontSize: '0.9rem', marginTop: '4px' }}>여러 명의 홍보대사에게 동일한 활동 시간 내역을 일괄적으로 부여합니다.</p>
           </div>
         </div>
 
