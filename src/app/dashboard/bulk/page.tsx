@@ -34,10 +34,15 @@ export default function BulkCreatePage() {
   // Form state
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [description, setDescription] = useState('');
-  const [bulkLabel, setBulkLabel] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [customHours, setCustomHours] = useState<number | ''>('');
+  const [activityDate, setActivityDate] = useState(new Date().toISOString().slice(0, 10));
+
+  // File upload state
+  const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState('');
+  const [dragOver, setDragOver] = useState(false);
 
   // Confirm modal
   const [confirmModal, setConfirmModal] = useState(false);
@@ -100,6 +105,37 @@ export default function BulkCreatePage() {
     }
   };
 
+  const handleFileChange = (selectedFile: File | null) => {
+    if (selectedFile) {
+      // Validate file size (5MB limit)
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        setError('파일 크기는 최대 5MB를 초과할 수 없습니다.');
+        const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        setError('허용되지 않는 파일 형식입니다. (JPEG, PNG, PDF만 가능)');
+        const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+
+      setError('');
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const droppedFile = e.dataTransfer.files[0];
+    handleFileChange(droppedFile);
+  };
+
   const handleSubmit = async () => {
     setConfirmModal(false);
     setSubmitting(true);
@@ -113,6 +149,22 @@ export default function BulkCreatePage() {
     }
 
     try {
+      let evidenceUrl: string | null = null;
+
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!uploadRes.ok) {
+          throw new Error('File upload failed');
+        }
+        const uploadData = await uploadRes.json();
+        evidenceUrl = uploadData.url;
+      }
+
       const res = await fetch('/api/requests/bulk-create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,8 +172,9 @@ export default function BulkCreatePage() {
           categoryId: Number(categoryId),
           description: description.trim(),
           userIds: Array.from(selectedUsers),
-          bulkLabel: bulkLabel.trim() || undefined,
           appliedHours: isEtc ? Number(customHours) : undefined,
+          evidenceFileUrl: evidenceUrl,
+          activityDate,
         }),
       });
 
@@ -136,9 +189,10 @@ export default function BulkCreatePage() {
       // Reset form
       setCategoryId('');
       setDescription('');
-      setBulkLabel('');
       setCustomHours('');
       setSelectedUsers(new Set());
+      setFile(null);
+      setFileName('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '일괄 신청 중 오류가 발생했습니다.');
     } finally {
@@ -147,6 +201,7 @@ export default function BulkCreatePage() {
   };
 
   const canSubmit = categoryId !== '' && 
+    activityDate !== '' &&
     description.trim().length >= 5 && 
     selectedUsers.size > 0 && 
     (!isEtc || (customHours !== '' && !isNaN(Number(customHours)) && Number(customHours) > 0 && (selectedCategory?.maxHours === null || selectedCategory?.maxHours === undefined || Number(customHours) <= selectedCategory.maxHours))) &&
@@ -265,18 +320,24 @@ export default function BulkCreatePage() {
                 )}
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label htmlFor="bulkLabel" className="form-label">활동명</label>
+                  <label htmlFor="activityDate" className="form-label">활동 날짜</label>
                   <input
-                    type="text"
-                    id="bulkLabel"
-                    name="bulkLabel"
+                    type="date"
+                    id="activityDate"
+                    name="activityDate"
                     className="form-input"
-                    placeholder="예: 2026 광운대 정시 박람회 의전"
-                    value={bulkLabel}
-                    onChange={(e) => setBulkLabel(e.target.value)}
+                    value={activityDate}
+                    onChange={(e) => setActivityDate(e.target.value)}
+                    onClick={(e) => {
+                      try {
+                        e.currentTarget.showPicker();
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
                     disabled={submitting}
-                    autoComplete="off"
-                    style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
+                    required
+                    style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}
                   />
                 </div>
 
@@ -297,6 +358,50 @@ export default function BulkCreatePage() {
                   <span className="form-hint" style={{ color: description.length >= 5 ? 'var(--text-muted)' : '#ef4444' }}>
                     {description.length}/5 자 이상
                   </span>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">증빙 파일 (선택)</label>
+                  <div
+                    className={`file-upload-zone ${dragOver ? 'file-upload-zone-active' : ''} ${fileName ? 'file-upload-zone-filled' : ''}`}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById('fileInput')?.click()}
+                  >
+                    {fileName ? (
+                      <div className="file-upload-preview">
+                        <span className="file-upload-icon">📎</span>
+                        <span className="file-upload-name">{fileName}</span>
+                        <button
+                          type="button"
+                          className="file-upload-remove"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFile(null);
+                            setFileName('');
+                            const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+                            if (fileInput) fileInput.value = '';
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="file-upload-placeholder">
+                        <span className="file-upload-icon">📁</span>
+                        <p>파일을 드래그하거나 클릭하여 업로드</p>
+                        <span className="file-upload-hint">이미지, PDF (최대 5MB)</span>
+                      </div>
+                    )}
+                    <input
+                      id="fileInput"
+                      type="file"
+                      className="file-upload-input"
+                      onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                      disabled={submitting}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -516,10 +621,15 @@ export default function BulkCreatePage() {
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>대상 인원</span>
                     <strong style={{ color: '#b09a5c', fontSize: '1.05rem', fontWeight: 700 }}>{selectedUsers.size}명</strong>
                   </div>
-                  {bulkLabel.trim() && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>활동 날짜</span>
+                    <strong style={{ fontSize: '0.95rem' }}>{activityDate}</strong>
+                  </div>
+
+                  {fileName && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>활동명</span>
-                      <strong style={{ fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>{bulkLabel.trim()}</strong>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>첨부 파일</span>
+                      <strong style={{ fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>{fileName}</strong>
                     </div>
                   )}
                 </div>

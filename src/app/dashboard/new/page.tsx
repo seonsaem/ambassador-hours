@@ -28,6 +28,7 @@ export default function NewRequestPage() {
   const [error, setError] = useState('');
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [customHours, setCustomHours] = useState<number>(1);
+  const [activityDate, setActivityDate] = useState(new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -58,6 +59,23 @@ export default function NewRequestPage() {
 
   const handleFileChange = (selectedFile: File | null) => {
     if (selectedFile) {
+      // Validate file size (5MB limit)
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        setError('파일 크기는 최대 5MB를 초과할 수 없습니다.');
+        const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        setError('허용되지 않는 파일 형식입니다. (JPEG, PNG, PDF만 가능)');
+        const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+
+      setError('');
       setFile(selectedFile);
       setFileName(selectedFile.name);
     }
@@ -76,6 +94,10 @@ export default function NewRequestPage() {
 
     if (!categoryId) {
       setError('카테고리를 선택해주세요.');
+      return;
+    }
+    if (!activityDate) {
+      setError('활동 날짜를 입력해주세요.');
       return;
     }
     if (description.length < 5) {
@@ -120,6 +142,7 @@ export default function NewRequestPage() {
           description,
           evidenceFileUrl: evidenceUrl,
           appliedHours: isEtc ? Number(customHours) : undefined,
+          activityDate,
         }),
       });
 
@@ -224,6 +247,30 @@ export default function NewRequestPage() {
               </div>
             )}
 
+
+
+            {/* Activity Date */}
+            <div className="form-group">
+              <label htmlFor="activityDate" className="form-label">활동 날짜</label>
+              <input
+                type="date"
+                id="activityDate"
+                className="form-input"
+                value={activityDate}
+                onChange={(e) => setActivityDate(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {
+                    console.error(err);
+                  }
+                }}
+                disabled={loading}
+                required
+                style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}
+              />
+            </div>
+
             {/* Description */}
             <div className="form-group">
               <label htmlFor="description" className="form-label">활동 설명</label>
@@ -264,6 +311,8 @@ export default function NewRequestPage() {
                         e.stopPropagation();
                         setFile(null);
                         setFileName('');
+                        const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+                        if (fileInput) fileInput.value = '';
                       }}
                     >
                       ✕
@@ -273,7 +322,7 @@ export default function NewRequestPage() {
                   <div className="file-upload-placeholder">
                     <span className="file-upload-icon">📁</span>
                     <p>파일을 드래그하거나 클릭하여 업로드</p>
-                    <span className="file-upload-hint">이미지, PDF 등</span>
+                    <span className="file-upload-hint">이미지, PDF (최대 5MB)</span>
                   </div>
                 )}
                 <input

@@ -25,6 +25,7 @@ interface Request {
   rejectedReason: string | null;
   evidenceFileUrl: string | null;
   createdAt: string;
+  activityDate?: string | null;
   category: Category;
   createdById?: number | null;
 }
@@ -259,7 +260,7 @@ export default function DashboardPage() {
                       {getActivityBadge(req.activityType)}
                       <StatusBadge status={req.status} />
                     </div>
-                    <span className="request-date">{formatDate(req.createdAt)}</span>
+                    <span className="request-date">활동일: {formatDate(req.activityDate || req.createdAt)}</span>
                   </div>
                   <div className="request-description">
                     <p style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap', margin: 0 }}>
@@ -340,11 +341,29 @@ export default function DashboardPage() {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">증빙 파일 (선택)</label>
+              <label className="form-label">증빙 파일 (선택) (이미지, PDF, 최대 5MB)</label>
               <input
                 type="file"
                 className="form-input"
-                onChange={(e) => setResubmitFile(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  const selectedFile = e.target.files?.[0] || null;
+                  if (selectedFile) {
+                    if (selectedFile.size > 5 * 1024 * 1024) {
+                      alert('파일 크기는 최대 5MB를 초과할 수 없습니다.');
+                      e.target.value = '';
+                      setResubmitFile(null);
+                      return;
+                    }
+                    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                    if (!allowedTypes.includes(selectedFile.type)) {
+                      alert('허용되지 않는 파일 형식입니다. (JPEG, PNG, PDF만 가능)');
+                      e.target.value = '';
+                      setResubmitFile(null);
+                      return;
+                    }
+                  }
+                  setResubmitFile(selectedFile);
+                }}
               />
               {resubmitModal.evidenceFileUrl && !resubmitFile && (
                 <span className="form-hint">기존 파일이 유지됩니다</span>

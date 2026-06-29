@@ -43,6 +43,7 @@ model ActivityRequest {
   rejectedReason  String?
   bulkLabel       String?
   createdAt       DateTime @default(now())
+  activityDate    DateTime @default(now())
   user            User     @relation("UserRequests", fields: [userId], references: [id])
   category        ActivityCategory @relation(fields: [categoryId], references: [id])
   createdById     Int?

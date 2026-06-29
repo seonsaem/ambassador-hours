@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     if (error) return error;
 
     const body = await request.json();
-    const { categoryId, description, userIds, bulkLabel } = body;
+    const { categoryId, description, userIds, bulkLabel, evidenceFileUrl, activityDate } = body;
 
     // Validate required fields
     if (!categoryId || !description || !Array.isArray(userIds) || userIds.length === 0) {
@@ -98,6 +98,8 @@ export async function POST(request: NextRequest) {
             description: description.trim(),
             status: 'PENDING',
             bulkLabel: label,
+            evidenceFileUrl: evidenceFileUrl || null,
+            activityDate: activityDate ? new Date(activityDate) : new Date(),
             createdById: Number(session!.user.id),
           },
         }),

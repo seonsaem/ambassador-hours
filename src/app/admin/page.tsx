@@ -28,6 +28,7 @@ interface Request {
   rejectedReason: string | null;
   evidenceFileUrl: string | null;
   createdAt: string;
+  activityDate?: string | null;
   user: User;
   category: Category;
   categoryId: number;
@@ -44,6 +45,7 @@ interface GroupedRequest {
   description: string;
   evidenceFileUrl: string | null;
   createdAt: string;
+  activityDate?: string | null;
   users: User[];
   requests: Request[];
   createdBy?: User | null;
@@ -259,6 +261,14 @@ export default function AdminPage() {
     return `${yyyy}.${mm}.${dd} ${hh}:${min}`;
   };
 
+  const formatDateOnly = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}.${mm}.${dd}`;
+  };
+
   if (status === 'loading' || loading) {
     return (
       <>
@@ -338,6 +348,7 @@ export default function AdminPage() {
                       description: req.description,
                       evidenceFileUrl: req.evidenceFileUrl,
                       createdAt: req.createdAt,
+                      activityDate: req.activityDate,
                       createdBy: req.createdBy,
                       users: [],
                       requests: []
@@ -357,6 +368,7 @@ export default function AdminPage() {
                     description: req.description,
                     evidenceFileUrl: req.evidenceFileUrl,
                     createdAt: req.createdAt,
+                    activityDate: req.activityDate,
                     users: [req.user],
                     requests: [req]
                   });
@@ -405,7 +417,7 @@ export default function AdminPage() {
                           </>
                         )}
                       </div>
-                      <span className="request-date">{formatDate(group.createdAt)}</span>
+                      <span className="request-date">활동일: {formatDateOnly(group.activityDate || group.createdAt)}</span>
                     </div>
 
                     <div className="admin-request-meta">
@@ -561,7 +573,7 @@ export default function AdminPage() {
                                       <span className="user-group-item-hours">{req.appliedHours}시간</span>
                                     )}
                                   </div>
-                                  <span className="request-date">{formatDate(req.createdAt)}</span>
+                                  <span className="request-date">활동일: {formatDateOnly(req.activityDate || req.createdAt)}</span>
                                 </div>
                                 <p className="user-group-item-desc">
                                   {expanded.has(req.id) || req.description.length <= 120

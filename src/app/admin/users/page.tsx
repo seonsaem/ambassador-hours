@@ -34,6 +34,10 @@ export default function UsersPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [expandedUser, setExpandedUser] = useState<number | null>(null);
 
+  // Inline editing state
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [editingName, setEditingName] = useState('');
+
   // Invite form
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
@@ -186,18 +190,21 @@ export default function UsersPage() {
     }
   };
 
-  const handleNameChange = async (userId: number, currentName: string) => {
-    const newName = prompt('변경할 이름을 입력하세요:', currentName);
-    if (newName === null) return;
+  const handleNameChange = async (userId: number, newName: string) => {
     const trimmed = newName.trim();
     if (!trimmed) {
       alert('이름은 비어있을 수 없습니다.');
       return;
     }
-    if (trimmed === currentName) return;
+    const user = users.find((u) => u.id === userId);
+    if (user && trimmed === user.name) {
+      setEditingUserId(null);
+      return;
+    }
 
     setActionLoading(userId);
     setError('');
+    setEditingUserId(null);
 
     try {
       const res = await fetch(`/api/users/${userId}`, {
@@ -428,15 +435,50 @@ export default function UsersPage() {
                           {breakdown.length > 0 && (
                             <span style={{ marginRight: '6px', fontSize: '0.75rem', opacity: 0.6, display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▶</span>
                           )}
-                          <span style={{ marginRight: '8px' }}>{user.name}</span>
-                          <button
-                            className="btn-text"
-                            onClick={(e) => { e.stopPropagation(); handleNameChange(user.id, user.name); }}
-                            style={{ fontSize: '0.8rem', padding: '2px 4px', opacity: 0.7 }}
-                            title="이름 변경"
-                          >
-                            ✏️
-                          </button>
+                          {editingUserId === user.id ? (
+                            <input
+                              type="text"
+                              className="form-input"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleNameChange(user.id, editingName);
+                                } else if (e.key === 'Escape') {
+                                  setEditingUserId(null);
+                                }
+                              }}
+                              onBlur={() => handleNameChange(user.id, editingName)}
+                              onClick={(e) => e.stopPropagation()}
+                              autoFocus
+                              style={{
+                                display: 'inline-block',
+                                width: '100px',
+                                padding: '2px 6px',
+                                fontSize: '0.85rem',
+                                margin: 0,
+                                height: 'auto',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--glass-border)',
+                                borderRadius: '4px',
+                              }}
+                            />
+                          ) : (
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingUserId(user.id);
+                                setEditingName(user.name);
+                              }}
+                              style={{
+                                cursor: 'pointer',
+                              }}
+                              title="클릭하여 이름 수정"
+                            >
+                              {user.name}
+                            </span>
+                          )}
                         </td>
                         <td className="td-email">{user.email}</td>
                         <td>{getStatusBadge(user.status)}</td>
@@ -603,15 +645,50 @@ export default function UsersPage() {
                         {breakdown.length > 0 && (
                           <span style={{ marginRight: '6px', fontSize: '0.65rem', opacity: 0.6, display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▶</span>
                         )}
-                        <span style={{ marginRight: '8px' }}>{user.name}</span>
-                        <button
-                          className="btn-text"
-                          onClick={(e) => { e.stopPropagation(); handleNameChange(user.id, user.name); }}
-                          style={{ fontSize: '0.75rem', padding: '2px 4px', opacity: 0.7 }}
-                          title="이름 변경"
-                        >
-                          ✏️
-                        </button>
+                        {editingUserId === user.id ? (
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleNameChange(user.id, editingName);
+                              } else if (e.key === 'Escape') {
+                                setEditingUserId(null);
+                              }
+                            }}
+                            onBlur={() => handleNameChange(user.id, editingName)}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                            style={{
+                              display: 'inline-block',
+                              width: '100px',
+                              padding: '2px 6px',
+                              fontSize: '0.85rem',
+                              margin: 0,
+                              height: 'auto',
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              color: 'var(--text-primary)',
+                              border: '1px solid var(--glass-border)',
+                              borderRadius: '4px',
+                            }}
+                          />
+                        ) : (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingUserId(user.id);
+                              setEditingName(user.name);
+                            }}
+                            style={{
+                              cursor: 'pointer',
+                            }}
+                            title="클릭하여 이름 수정"
+                          >
+                            {user.name}
+                          </span>
+                        )}
                       </span>
                       <span className="mobile-card-subtitle">{user.email}</span>
                     </div>

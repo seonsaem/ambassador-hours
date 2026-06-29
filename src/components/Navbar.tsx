@@ -88,7 +88,16 @@ export default function Navbar() {
 
   if (!session) return null;
 
-  const userInitial = session.user?.name ? session.user.name.charAt(0) : 'U';
+  const getUserInitial = (name: string | null | undefined): string => {
+    if (!name) return 'U';
+    const cohortMatch = name.match(/(\d+)\s*기/);
+    if (cohortMatch) return cohortMatch[1];
+    const leadingNumberMatch = name.match(/^(\d+)/);
+    if (leadingNumberMatch) return leadingNumberMatch[1];
+    return name.charAt(0);
+  };
+
+  const userInitial = getUserInitial(session.user?.name);
 
   return (
     <>

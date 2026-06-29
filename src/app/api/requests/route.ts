@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (error) return error;
 
     const body = await request.json();
-    const { categoryId, description, evidenceFileUrl } = body;
+    const { categoryId, description, evidenceFileUrl, bulkLabel, activityDate } = body;
 
     if (!categoryId || !description) {
       return NextResponse.json(
@@ -122,6 +122,8 @@ export async function POST(request: NextRequest) {
         description,
         evidenceFileUrl: evidenceFileUrl || null,
         status: 'PENDING',
+        bulkLabel: bulkLabel?.trim() || null,
+        activityDate: activityDate ? new Date(activityDate) : new Date(),
         createdById: Number(session!.user.id),
       },
       include: { category: true },
