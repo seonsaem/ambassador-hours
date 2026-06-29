@@ -26,10 +26,11 @@ interface Request {
   evidenceFileUrl: string | null;
   createdAt: string;
   category: Category;
+  createdById?: number | null;
 }
 
 export default function DashboardPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +90,13 @@ export default function DashboardPage() {
 
   const totalHours = officialHours + autonomousHours;
 
+  const displayRequests = requests.filter((req) => {
+    if (req.createdById !== undefined && req.createdById !== null) {
+      return req.createdById === Number(session?.user?.id);
+    }
+    return true;
+  });
+
   const openResubmitModal = (request: Request) => {
     setResubmitModal(request);
     setResubmitDesc(request.description);
@@ -137,11 +145,10 @@ export default function DashboardPage() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}.${mm}.${dd}`;
   };
 
   const getActivityBadge = (type: string | null) => {
@@ -230,7 +237,7 @@ export default function DashboardPage() {
         <div className="section">
           <h2 className="section-title">활동 내역</h2>
 
-          {requests.length === 0 ? (
+          {displayRequests.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">📋</div>
               <p className="empty-state-text">아직 활동 신청 내역이 없습니다</p>
@@ -240,7 +247,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="request-list">
-              {requests.map((req, index) => (
+              {displayRequests.map((req, index) => (
                 <div
                   key={req.id}
                   className={`request-card request-card-${req.status.toLowerCase()}`}
