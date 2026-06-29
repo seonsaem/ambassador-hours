@@ -33,12 +33,20 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { categoryName, activityType, assignedHours, isActive } = body;
+    const { categoryName, activityType, assignedHours, isActive, department, maxHours } = body;
 
     // Validate activityType if provided
     if (activityType && !['OFFICIAL', 'AUTONOMOUS'].includes(activityType)) {
       return NextResponse.json(
         { error: 'activityType must be OFFICIAL or AUTONOMOUS' },
+        { status: 400 },
+      );
+    }
+
+    // Validate department if provided
+    if (department && !['미디어홍보부', '전공체험부', '전략기획부', '임원진/부장', '신입기수'].includes(department)) {
+      return NextResponse.json(
+        { error: 'Invalid department' },
         { status: 400 },
       );
     }
@@ -49,6 +57,28 @@ export async function PUT(
     if (assignedHours !== undefined)
       updateData.assignedHours = Number(assignedHours);
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (department !== undefined) updateData.department = department || null;
+
+    // Handle maxHours
+    const targetAssignedHours = assignedHours !== undefined ? Number(assignedHours) : existing.assignedHours;
+    if (targetAssignedHours === 0) {
+      if (maxHours !== undefined) {
+        if (maxHours === null || maxHours === '') {
+          updateData.maxHours = null;
+        } else {
+          const parsedMax = Number(maxHours);
+          if (isNaN(parsedMax) || parsedMax <= 0) {
+            return NextResponse.json(
+              { error: '최대 제한 시간은 0보다 큰 숫자여야 합니다.' },
+              { status: 400 },
+            );
+          }
+          updateData.maxHours = parsedMax;
+        }
+      }
+    } else {
+      updateData.maxHours = null;
+    }
 
     const updated = await prisma.activityCategory.update({
       where: { id: categoryId },

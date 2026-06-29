@@ -9,8 +9,15 @@ export async function GET() {
     if (error) return error;
 
     // Fetch all categories for dynamic columns
-    const categories = await prisma.activityCategory.findMany({
+    const rawCategories = await prisma.activityCategory.findMany({
       orderBy: { id: 'asc' },
+    });
+
+    // Sort categories: OFFICIAL first, then AUTONOMOUS (keeping relative ID order)
+    const categories = rawCategories.sort((a, b) => {
+      if (a.activityType === 'OFFICIAL' && b.activityType === 'AUTONOMOUS') return -1;
+      if (a.activityType === 'AUTONOMOUS' && b.activityType === 'OFFICIAL') return 1;
+      return a.id - b.id;
     });
 
     // Fetch all users with approved requests including category info
@@ -176,7 +183,7 @@ export async function GET() {
     const asciiFilename = `kwangwoon_hours_${dateSuffix}.xlsx`;
     const encodedFilename = encodeURIComponent(koreanFilename);
 
-    return new NextResponse(buffer as any, {
+    return new NextResponse(buffer as unknown as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

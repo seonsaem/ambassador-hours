@@ -56,7 +56,8 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
+    await signOut({ redirect: false });
+    window.location.href = '/login';
   };
 
   if (status === 'loading') {
@@ -116,7 +117,6 @@ export default function Navbar() {
         <ul 
           className="nav-links-desktop"
           style={{
-            display: 'flex',
             listStyle: 'none',
             margin: 0,
             padding: 0,
@@ -173,6 +173,7 @@ export default function Navbar() {
         >
           {/* User profile chip */}
           <div 
+            className="navbar-user"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -214,6 +215,7 @@ export default function Navbar() {
 
           <button 
             onClick={handleLogout} 
+            className="btn-logout"
             style={{
               background: 'transparent',
               border: '1px solid rgba(255, 255, 255, 0.1)',

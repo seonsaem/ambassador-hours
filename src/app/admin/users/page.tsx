@@ -62,7 +62,7 @@ export default function UsersPage() {
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
-      const sorted = data.sort((a: any, b: any) => collator.compare(a.name, b.name));
+      const sorted = data.sort((a: UserData, b: UserData) => collator.compare(a.name, b.name));
       setUsers(sorted);
     } catch {
       setError('사용자 목록을 불러오는 중 오류가 발생했습니다.');
@@ -363,7 +363,8 @@ export default function UsersPage() {
             사용자 목록
             <span className="card-title-count">{users.length}명</span>
           </h3>
-          <div className="table-responsive">
+          {/* Desktop Table View */}
+          <div className="table-responsive desktop-only-table">
             <table className="table">
               <thead>
                 <tr>
@@ -540,6 +541,163 @@ export default function UsersPage() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card List View */}
+          <div className="mobile-only-cards">
+            {users.map((user) => {
+              const isExpanded = expandedUser === user.id;
+              const breakdown = user.categoryBreakdown || [];
+
+              return (
+                <div 
+                  key={user.id} 
+                  className={`mobile-card ${user.status === 'BANNED' ? 'row-inactive' : ''}`}
+                  onClick={() => breakdown.length > 0 && setExpandedUser(isExpanded ? null : user.id)}
+                  style={{ cursor: breakdown.length > 0 ? 'pointer' : 'default' }}
+                >
+                  <div className="mobile-card-header">
+                    <div className="mobile-card-title-group">
+                      <span className="mobile-card-title">
+                        {breakdown.length > 0 && (
+                          <span style={{ marginRight: '6px', fontSize: '0.65rem', opacity: 0.6, display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▶</span>
+                        )}
+                        {user.name}
+                      </span>
+                      <span className="mobile-card-subtitle">{user.email}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {getStatusBadge(user.status)}
+                      {getRoleBadge(user.role)}
+                    </div>
+                  </div>
+
+                  <div className="mobile-card-body">
+                    <div className="mobile-card-row">
+                      <span className="mobile-card-row-label">공식 활동</span>
+                      <span className="badge badge-purple" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
+                        {(user.officialHours ?? 0).toFixed(1)}h
+                      </span>
+                    </div>
+                    <div className="mobile-card-row">
+                      <span className="mobile-card-row-label">자율 활동</span>
+                      <span className="badge badge-teal" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
+                        {(user.autonomousHours ?? 0).toFixed(1)}h
+                      </span>
+                    </div>
+                    <div className="mobile-card-row" style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.04)', paddingTop: '6px', marginTop: '2px' }}>
+                      <span className="mobile-card-row-label" style={{ fontWeight: 600 }}>총 활동 시간</span>
+                      <strong style={{ color: 'var(--secondary)' }}>
+                        {(user.totalApprovedHours ?? 0).toFixed(1)}시간
+                      </strong>
+                    </div>
+
+                    {isExpanded && breakdown.length > 0 && (
+                      <div className="mobile-card-expand-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="user-breakdown-title" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          📊 카테고리별 승인 시간 내역
+                        </div>
+                        {breakdown.map((cat) => (
+                          <div key={cat.categoryId} className="user-breakdown-row" style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.8rem' }}>
+                            <span className="user-breakdown-label" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {cat.categoryName}
+                            </span>
+                            <span className={`badge ${cat.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`} style={{ fontSize: '0.6rem', padding: '2px 6px' }}>
+                              {cat.activityType === 'OFFICIAL' ? '공식' : '자율'}
+                            </span>
+                            <span className="user-breakdown-hours" style={{ fontWeight: 600 }}>
+                              {cat.hours.toFixed(1)}h
+                            </span>
+                            <span className="user-breakdown-count" style={{ color: 'var(--text-muted)' }}>
+                              {cat.count}건
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mobile-card-actions" onClick={(e) => e.stopPropagation()}>
+                    {user.role === 'ADMIN' ? (
+                      <>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => handleRoleChange(user.id, 'USER')}
+                          disabled={actionLoading === user.id || user.email === session?.user?.email}
+                          title={user.email === session?.user?.email ? "본인의 권한은 해제할 수 없습니다" : "관리자 권한 해제"}
+                        >
+                          권한 회수
+                        </button>
+                        {user.email !== session?.user?.email && (
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={actionLoading === user.id}
+                          >
+                            계정 삭제
+                          </button>
+                        )}
+                      </>
+                    ) : user.status === 'ACTIVE' ? (
+                      <>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleRoleChange(user.id, 'ADMIN')}
+                          disabled={actionLoading === user.id}
+                        >
+                          관리자 임명
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleStatusChange(user.id, 'BANNED')}
+                          disabled={actionLoading === user.id}
+                        >
+                          정지
+                        </button>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ borderColor: 'rgba(239, 68, 68, 0.5)', color: '#ef4444' }}
+                          onClick={() => handleDeleteUser(user.id)}
+                          disabled={actionLoading === user.id}
+                        >
+                          삭제
+                        </button>
+                      </>
+                    ) : user.status === 'BANNED' ? (
+                      <>
+                        <button
+                          className="btn btn-success btn-sm"
+                          onClick={() => handleStatusChange(user.id, 'ACTIVE')}
+                          disabled={actionLoading === user.id}
+                        >
+                          활성화
+                        </button>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ borderColor: 'rgba(239, 68, 68, 0.5)', color: '#ef4444' }}
+                          onClick={() => handleDeleteUser(user.id)}
+                          disabled={actionLoading === user.id}
+                        >
+                          삭제
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-muted" style={{ marginRight: 'auto', alignSelf: 'center', fontSize: '0.78rem' }}>대기중</span>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ borderColor: 'rgba(239, 68, 68, 0.5)', color: '#ef4444' }}
+                          onClick={() => handleDeleteUser(user.id)}
+                          disabled={actionLoading === user.id}
+                        >
+                          삭제
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

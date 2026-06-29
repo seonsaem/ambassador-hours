@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import CustomDropdown from '@/components/CustomDropdown';
 
 interface Category {
   id: number;
@@ -11,6 +12,7 @@ interface Category {
   activityType: 'OFFICIAL' | 'AUTONOMOUS';
   assignedHours: number;
   isActive: boolean;
+  maxHours?: number | null;
 }
 
 interface UserData {
@@ -20,7 +22,7 @@ interface UserData {
 }
 
 export default function BulkCreatePage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -35,24 +37,10 @@ export default function BulkCreatePage() {
   const [bulkLabel, setBulkLabel] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
   const [submitting, setSubmitting] = useState(false);
+  const [customHours, setCustomHours] = useState<number | ''>('');
 
   // Confirm modal
   const [confirmModal, setConfirmModal] = useState(false);
-
-  // Custom Dropdown state
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -70,8 +58,8 @@ export default function BulkCreatePage() {
       const catData = await catRes.json();
       const userData = await userRes.json();
       const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
-      const sortedUsers = userData.sort((a: any, b: any) => collator.compare(a.name, b.name));
-      setCategories(catData.filter((c: Category) => c.isActive && c.categoryName !== '기타'));
+      const sortedUsers = userData.sort((a: UserData, b: UserData) => collator.compare(a.name, b.name));
+      setCategories(catData.filter((c: Category) => c.isActive));
       setUsers(sortedUsers);
     } catch {
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
@@ -82,11 +70,18 @@ export default function BulkCreatePage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchData();
     }
   }, [status, fetchData]);
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
+  const isEtc = selectedCategory?.assignedHours === 0;
+
+  const handleCategoryChange = (val: number | '') => {
+    setCategoryId(val);
+    setCustomHours('');
+  };
 
   const toggleUser = (userId: number) => {
     setSelectedUsers((prev) => {
@@ -111,6 +106,12 @@ export default function BulkCreatePage() {
     setError('');
     setSuccess('');
 
+    if (isEtc && selectedCategory?.maxHours !== null && selectedCategory?.maxHours !== undefined && Number(customHours) > selectedCategory.maxHours) {
+      setError(`신청 시간은 최대 ${selectedCategory.maxHours}시간을 초과할 수 없습니다.`);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/requests/bulk-create', {
         method: 'POST',
@@ -120,6 +121,7 @@ export default function BulkCreatePage() {
           description: description.trim(),
           userIds: Array.from(selectedUsers),
           bulkLabel: bulkLabel.trim() || undefined,
+          appliedHours: isEtc ? Number(customHours) : undefined,
         }),
       });
 
@@ -135,6 +137,7 @@ export default function BulkCreatePage() {
       setCategoryId('');
       setDescription('');
       setBulkLabel('');
+      setCustomHours('');
       setSelectedUsers(new Set());
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '일괄 신청 중 오류가 발생했습니다.');
@@ -143,7 +146,11 @@ export default function BulkCreatePage() {
     }
   };
 
-  const canSubmit = categoryId !== '' && description.trim().length >= 5 && selectedUsers.size > 0 && !submitting;
+  const canSubmit = categoryId !== '' && 
+    description.trim().length >= 5 && 
+    selectedUsers.size > 0 && 
+    (!isEtc || (customHours !== '' && !isNaN(Number(customHours)) && Number(customHours) > 0 && (selectedCategory?.maxHours === null || selectedCategory?.maxHours === undefined || Number(customHours) <= selectedCategory.maxHours))) &&
+    !submitting;
 
   if (status === 'loading' || loading) {
     return (
@@ -194,9 +201,9 @@ export default function BulkCreatePage() {
           </div>
         )}
 
-        <div className="grid-metrics" style={{ gridTemplateColumns: 'repeat(12, 1fr)', gap: 'var(--space-xl)', alignItems: 'start' }}>
+        <div className="grid-12">
           {/* Left Column: Activity Settings (col-span-5) */}
-          <div className="glass-card" style={{ gridColumn: 'span 5', padding: '6px', borderRadius: 'var(--bezel-outer-radius)', background: 'var(--bezel-outer-bg)', border: '1px solid var(--bezel-outer-ring)' }}>
+          <div className="glass-card col-5" style={{ padding: '6px', borderRadius: 'var(--bezel-outer-radius)', background: 'var(--bezel-outer-bg)', border: '1px solid var(--bezel-outer-ring)' }}>
             <div className="glass-card-inner" style={{ borderRadius: 'var(--bezel-inner-radius)', padding: 'var(--space-xl)', background: 'var(--bezel-inner-bg)', boxShadow: 'var(--bezel-inner-highlight)' }}>
               <h3 className="card-title" style={{ fontSize: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)', display: 'block' }}>
                 활동 정보 입력
@@ -205,154 +212,55 @@ export default function BulkCreatePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">카테고리</label>
-                  <div ref={dropdownRef} style={{ position: 'relative', width: '100%' }}>
-                    <button
-                      type="button"
-                      onClick={() => !submitting && setDropdownOpen((prev) => !prev)}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '12px 16px',
-                        background: 'rgba(5,5,8,0.3)',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                        borderRadius: 'var(--radius-md)',
-                        color: selectedCategory ? 'var(--text-primary)' : 'var(--text-muted)',
-                        fontSize: '0.9rem',
-                        cursor: submitting ? 'not-allowed' : 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 200ms ease'
-                      }}
-                    >
-                      <span>{selectedCategory ? selectedCategory.categoryName : '카테고리를 선택하세요'}</span>
-                      <span style={{ fontSize: '0.6rem', transition: 'transform 200ms ease', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', color: 'var(--text-muted)' }}>
-                        ▼
-                      </span>
-                    </button>
-
-                    {dropdownOpen && (
-                      <div 
-                        style={{
-                          position: 'absolute',
-                          top: 'calc(100% + 6px)',
-                          left: 0,
-                          width: '100%',
-                          background: 'rgba(10, 16, 30, 0.95)',
-                          backdropFilter: 'blur(20px)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                          borderRadius: 'var(--radius-md)',
-                          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.5)',
-                          zIndex: 100,
-                          maxHeight: '200px',
-                          overflowY: 'auto',
-                          padding: '4px',
-                          animation: 'slideDown 0.2s var(--ease-out-expo)'
-                        }}
-                      >
-                        {/* 공식 활동 그룹 */}
-                        {categories.filter(c => c.activityType === 'OFFICIAL').length > 0 && (
-                          <>
-                            <div style={{ padding: '6px 12px 2px 12px', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                              공식 활동 (정기/의무)
-                            </div>
-                            {categories.filter(c => c.activityType === 'OFFICIAL').map((cat) => {
-                              const isCurrent = cat.id === categoryId;
-                              return (
-                                <button
-                                  key={cat.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setCategoryId(cat.id);
-                                    setDropdownOpen(false);
-                                  }}
-                                  style={{
-                                    width: '100%',
-                                    display: 'block',
-                                    padding: '8px 14px',
-                                    background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
-                                    color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
-                                    border: 0,
-                                    borderRadius: 'var(--radius-sm)',
-                                    fontSize: '0.85rem',
-                                    fontWeight: isCurrent ? 600 : 500,
-                                    textAlign: 'left',
-                                    cursor: 'pointer',
-                                    transition: 'all 150ms ease'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    if (!isCurrent) e.currentTarget.style.background = 'transparent';
-                                  }}
-                                >
-                                  {cat.categoryName}
-                                </button>
-                              );
-                            })}
-                            <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '6px 8px' }} />
-                          </>
-                        )}
-
-                        {/* 자율 활동 그룹 */}
-                        {categories.filter(c => c.activityType === 'AUTONOMOUS').length > 0 && (
-                          <>
-                            <div style={{ padding: '6px 12px 2px 12px', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>
-                              자율 활동 (비정기/선택)
-                            </div>
-                            {categories.filter(c => c.activityType === 'AUTONOMOUS').map((cat) => {
-                              const isCurrent = cat.id === categoryId;
-                              return (
-                                <button
-                                  key={cat.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setCategoryId(cat.id);
-                                    setDropdownOpen(false);
-                                  }}
-                                  style={{
-                                    width: '100%',
-                                    display: 'block',
-                                    padding: '8px 14px',
-                                    background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
-                                    color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
-                                    border: 0,
-                                    borderRadius: 'var(--radius-sm)',
-                                    fontSize: '0.85rem',
-                                    fontWeight: isCurrent ? 600 : 500,
-                                    textAlign: 'left',
-                                    cursor: 'pointer',
-                                    transition: 'all 150ms ease'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    if (!isCurrent) e.currentTarget.style.background = 'transparent';
-                                  }}
-                                >
-                                  {cat.categoryName}
-                                </button>
-                              );
-                            })}
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <CustomDropdown
+                    categories={categories}
+                    categoryId={categoryId as number}
+                    setCategoryId={handleCategoryChange}
+                    disabled={submitting}
+                  />
                 </div>
 
                 {selectedCategory && (
                   <div className="category-info" style={{ margin: '0', animation: 'slideDown 0.3s var(--ease-out-expo)' }}>
-                    <div className="category-info-badges" style={{ display: 'flex', gap: '6px' }}>
-                      <span className={`badge ${selectedCategory.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`} style={{ fontSize: '0.7rem' }}>
-                        {selectedCategory.activityType === 'OFFICIAL' ? '공식 활동' : '자율 활동'}
-                      </span>
-                      <span className="badge badge-outline" style={{ fontSize: '0.7rem' }}>
-                        {selectedCategory.assignedHours}시간 배정
-                      </span>
-                    </div>
+                    {isEtc ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                        <div className="alert alert-info" style={{ margin: 0, padding: '10px 12px', fontSize: '0.8rem', wordBreak: 'keep-all' }}>
+                          <span className="alert-icon">ℹ️</span>
+                          시간 변동(가변) 카테고리입니다. 적용할 시간을 입력해 주세요.
+                          {selectedCategory.maxHours !== null && selectedCategory.maxHours !== undefined && (
+                            <>
+                              {' '}
+                              <strong>(최대 {selectedCategory.maxHours}시간)</strong>
+                            </>
+                          )}
+                        </div>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                          <label htmlFor="customHours" className="form-label">신청 시간</label>
+                          <input
+                            type="number"
+                            id="customHours"
+                            className="form-input"
+                            min={0.5}
+                            max={selectedCategory.maxHours !== null && selectedCategory.maxHours !== undefined ? selectedCategory.maxHours : undefined}
+                            step={0.5}
+                            value={customHours}
+                            onChange={(e) => setCustomHours(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            required
+                            disabled={submitting}
+                            style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="category-info-badges" style={{ display: 'flex', gap: '6px' }}>
+                        <span className={`badge ${selectedCategory.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`} style={{ fontSize: '0.7rem' }}>
+                          {selectedCategory.activityType === 'OFFICIAL' ? '공식 활동' : '자율 활동'}
+                        </span>
+                        <span className="badge badge-outline" style={{ fontSize: '0.7rem' }}>
+                          {selectedCategory.assignedHours}시간 배정
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -395,7 +303,7 @@ export default function BulkCreatePage() {
           </div>
 
           {/* Right Column: User Selection (col-span-7) */}
-          <div className="glass-card" style={{ gridColumn: 'span 7', padding: '6px', borderRadius: 'var(--bezel-outer-radius)', background: 'var(--bezel-outer-bg)', border: '1px solid var(--bezel-outer-ring)' }}>
+          <div className="glass-card col-7" style={{ padding: '6px', borderRadius: 'var(--bezel-outer-radius)', background: 'var(--bezel-outer-bg)', border: '1px solid var(--bezel-outer-ring)' }}>
             <div className="glass-card-inner" style={{ borderRadius: 'var(--bezel-inner-radius)', padding: 'var(--space-xl)', background: 'var(--bezel-inner-bg)', boxShadow: 'var(--bezel-inner-highlight)' }}>
               <div className="flex justify-between items-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
                 <div>
@@ -600,7 +508,9 @@ export default function BulkCreatePage() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>배정 시간</span>
-                    <strong style={{ fontSize: '0.95rem' }}>{selectedCategory?.assignedHours}시간</strong>
+                    <strong style={{ fontSize: '0.95rem' }}>
+                      {isEtc ? `${customHours}시간` : `${selectedCategory?.assignedHours}시간`}
+                    </strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>대상 인원</span>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import CustomDropdown from '@/components/CustomDropdown';
 
 interface Category {
   id: number;
@@ -11,6 +12,7 @@ interface Category {
   activityType: 'OFFICIAL' | 'AUTONOMOUS';
   assignedHours: number;
   isActive: boolean;
+  maxHours?: number | null;
 }
 
 export default function NewRequestPage() {
@@ -25,21 +27,7 @@ export default function NewRequestPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-
-  // Custom Dropdown state
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const [customHours, setCustomHours] = useState<number>(1);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -66,7 +54,7 @@ export default function NewRequestPage() {
   }, [status]);
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
-  const isEtc = selectedCategory?.categoryName === '기타';
+  const isEtc = selectedCategory?.assignedHours === 0;
 
   const handleFileChange = (selectedFile: File | null) => {
     if (selectedFile) {
@@ -93,6 +81,16 @@ export default function NewRequestPage() {
     if (description.length < 5) {
       setError('활동 설명은 5자 이상 입력해주세요.');
       return;
+    }
+    if (isEtc) {
+      if (isNaN(customHours) || customHours <= 0) {
+        setError('신청 시간을 0.5시간 단위로 올바르게 입력해주세요.');
+        return;
+      }
+      if (selectedCategory?.maxHours !== null && selectedCategory?.maxHours !== undefined && customHours > selectedCategory.maxHours) {
+        setError(`신청 시간은 최대 ${selectedCategory.maxHours}시간을 초과할 수 없습니다.`);
+        return;
+      }
     }
 
     setLoading(true);
@@ -121,6 +119,7 @@ export default function NewRequestPage() {
           categoryId: Number(categoryId),
           description,
           evidenceFileUrl: evidenceUrl,
+          appliedHours: isEtc ? Number(customHours) : undefined,
         }),
       });
 
@@ -171,146 +170,12 @@ export default function NewRequestPage() {
               {categoriesLoading ? (
                 <div className="skeleton skeleton-input" />
               ) : (
-                <div ref={dropdownRef} style={{ position: 'relative', width: '100%' }}>
-                  <button
-                    type="button"
-                    onClick={() => !loading && setDropdownOpen((prev) => !prev)}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '12px 16px',
-                      background: 'rgba(5,5,8,0.3)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: 'var(--radius-md)',
-                      color: categoryId ? 'var(--text-primary)' : 'var(--text-muted)',
-                      fontSize: '0.9rem',
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      textAlign: 'left',
-                      transition: 'all 200ms ease'
-                    }}
-                  >
-                    <span>
-                      {categoryId 
-                        ? categories.find(c => c.id === categoryId)?.categoryName 
-                        : '카테고리를 선택하세요'}
-                    </span>
-                    <span style={{ fontSize: '0.6rem', transition: 'transform 200ms ease', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', color: 'var(--text-muted)' }}>
-                      ▼
-                    </span>
-                  </button>
-
-                  {dropdownOpen && (
-                    <div 
-                      style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 6px)',
-                        left: 0,
-                        width: '100%',
-                        background: 'rgba(10, 16, 30, 0.95)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: 'var(--radius-md)',
-                        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.5)',
-                        zIndex: 100,
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        padding: '4px',
-                        animation: 'slideDown 0.2s var(--ease-out-expo)'
-                      }}
-                    >
-                      {/* 공식 활동 그룹 */}
-                      {categories.filter(c => c.activityType === 'OFFICIAL').length > 0 && (
-                        <>
-                          <div style={{ padding: '6px 12px 2px 12px', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            공식 활동 (정기/의무)
-                          </div>
-                          {categories.filter(c => c.activityType === 'OFFICIAL').map((cat) => {
-                            const isCurrent = cat.id === categoryId;
-                            return (
-                              <button
-                                key={cat.id}
-                                type="button"
-                                onClick={() => {
-                                  setCategoryId(cat.id);
-                                  setDropdownOpen(false);
-                                }}
-                                style={{
-                                  width: '100%',
-                                  display: 'block',
-                                  padding: '8px 14px',
-                                  background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
-                                  color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
-                                  border: 0,
-                                  borderRadius: 'var(--radius-sm)',
-                                  fontSize: '0.85rem',
-                                  fontWeight: isCurrent ? 600 : 500,
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  transition: 'all 150ms ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (!isCurrent) e.currentTarget.style.background = 'transparent';
-                                }}
-                              >
-                                {cat.categoryName}
-                              </button>
-                            );
-                          })}
-                          <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '6px 8px' }} />
-                        </>
-                      )}
-
-                      {/* 자율 활동 그룹 */}
-                      {categories.filter(c => c.activityType === 'AUTONOMOUS').length > 0 && (
-                        <>
-                          <div style={{ padding: '6px 12px 2px 12px', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>
-                            자율 활동 (비정기/선택)
-                          </div>
-                          {categories.filter(c => c.activityType === 'AUTONOMOUS').map((cat) => {
-                            const isCurrent = cat.id === categoryId;
-                            return (
-                              <button
-                                key={cat.id}
-                                type="button"
-                                onClick={() => {
-                                  setCategoryId(cat.id);
-                                  setDropdownOpen(false);
-                                }}
-                                style={{
-                                  width: '100%',
-                                  display: 'block',
-                                  padding: '8px 14px',
-                                  background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
-                                  color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
-                                  border: 0,
-                                  borderRadius: 'var(--radius-sm)',
-                                  fontSize: '0.85rem',
-                                  fontWeight: isCurrent ? 600 : 500,
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  transition: 'all 150ms ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (!isCurrent) e.currentTarget.style.background = 'transparent';
-                                }}
-                              >
-                                {cat.categoryName}
-                              </button>
-                            );
-                          })}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <CustomDropdown
+                  categories={categories}
+                  categoryId={categoryId as number}
+                  setCategoryId={setCategoryId}
+                  disabled={loading}
+                />
               )}
             </div>
 
@@ -318,9 +183,33 @@ export default function NewRequestPage() {
             {selectedCategory && (
               <div className="category-info">
                 {isEtc ? (
-                  <div className="alert alert-info">
-                    <span className="alert-icon">ℹ️</span>
-                    관리자가 활동 유형과 시간을 배정합니다
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                    <div className="alert alert-info" style={{ marginBottom: 0, wordBreak: 'keep-all' }}>
+                      <span className="alert-icon">ℹ️</span>
+                      시간 변동(가변) 카테고리입니다. 실제 활동한 시간을 입력해 주세요.
+                      {selectedCategory.maxHours !== null && selectedCategory.maxHours !== undefined && (
+                        <>
+                          {' '}
+                          <strong>(최대 {selectedCategory.maxHours}시간까지 신청 가능)</strong>
+                        </>
+                      )}
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label htmlFor="customHours" className="form-label">신청 시간</label>
+                      <input
+                        type="number"
+                        id="customHours"
+                        className="form-input"
+                        min={0.5}
+                        max={selectedCategory.maxHours !== null && selectedCategory.maxHours !== undefined ? selectedCategory.maxHours : undefined}
+                        step={0.5}
+                        value={customHours}
+                        onChange={(e) => setCustomHours(parseFloat(e.target.value) || 0)}
+                        required
+                        disabled={loading}
+                        style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="category-info-badges">
@@ -410,7 +299,7 @@ export default function NewRequestPage() {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading || !categoryId || description.length < 10}
+                disabled={loading || !categoryId || description.length < 5}
               >
                 {loading ? (
                   <span className="btn-loading">

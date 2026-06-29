@@ -49,7 +49,7 @@ export async function POST(
       where: { id: existingRequest.categoryId },
     });
 
-    if (category?.categoryName === '기타') {
+    if (category?.assignedHours === 0) {
       const body = await request.json();
       const { activityType, appliedHours } = body;
 
@@ -73,6 +73,13 @@ export async function POST(
       if (typeof appliedHours !== 'number' || appliedHours <= 0) {
         return NextResponse.json(
           { error: 'appliedHours must be a positive number' },
+          { status: 400 },
+        );
+      }
+
+      if (category.maxHours !== null && appliedHours > category.maxHours) {
+        return NextResponse.json(
+          { error: `승인 시간이 최대 제한 시간(${category.maxHours}시간)을 초과했습니다.` },
           { status: 400 },
         );
       }

@@ -16,6 +16,7 @@ interface Category {
   categoryName: string;
   activityType: 'OFFICIAL' | 'AUTONOMOUS';
   assignedHours: number;
+  maxHours?: number | null;
 }
 
 interface Request {
@@ -62,11 +63,10 @@ export default function AdminPage() {
   const [rejectModal, setRejectModal] = useState<GroupedRequest | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  // ETC inline edit state
-  const [etcEdits, setEtcEdits] = useState<Record<number, {
-    activityType: 'OFFICIAL' | 'AUTONOMOUS';
-    hours: number;
-  }>>({});
+  // Delete modal state
+  const [deleteRequest, setDeleteRequest] = useState<Request | null>(null);
+
+
 
   // Expanded descriptions
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
@@ -133,12 +133,11 @@ export default function AdminPage() {
 
     try {
       const promises = group.requests.map(async (req) => {
-        const isReqEtc = req.category?.categoryName === '기타';
-        const etcData = etcEdits[req.id] || { activityType: 'OFFICIAL', hours: 0.5 };
+        const isReqEtc = req.category?.assignedHours === 0;
         const body: { activityType?: 'OFFICIAL' | 'AUTONOMOUS'; appliedHours?: number } = {};
         if (isReqEtc) {
-          body.activityType = etcData.activityType;
-          body.appliedHours = etcData.hours;
+          body.activityType = req.activityType as 'OFFICIAL' | 'AUTONOMOUS';
+          body.appliedHours = req.appliedHours || 0.5;
         }
 
         const res = await fetch(`/api/requests/${req.id}/approve`, {
@@ -207,8 +206,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('정말로 이 활동 내역을 삭제하시겠습니까? (복구할 수 없습니다)')) return;
+  const handleConfirmDelete = async (id: number) => {
     setActionLoading(id);
     setError('');
 
@@ -219,6 +217,7 @@ export default function AdminPage() {
         throw new Error(data.error || 'Failed to delete');
       }
       setRequests((prev) => prev.filter((r) => r.id !== id));
+      setDeleteRequest(null);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '삭제 중 오류가 발생했습니다.');
     } finally {
@@ -244,18 +243,7 @@ export default function AdminPage() {
     });
   };
 
-  const updateEtcEdit = (reqId: number, field: 'activityType' | 'hours', value: 'OFFICIAL' | 'AUTONOMOUS' | number) => {
-    setEtcEdits((prev) => {
-      const existing = prev[reqId] || { activityType: 'OFFICIAL', hours: 1 };
-      return {
-        ...prev,
-        [reqId]: {
-          ...existing,
-          [field]: value,
-        } as { activityType: 'OFFICIAL' | 'AUTONOMOUS'; hours: number },
-      };
-    });
-  };
+
 
 
 
@@ -377,7 +365,7 @@ export default function AdminPage() {
               }
 
               return groupedPending.map((group) => {
-                const isEtc = group.category?.categoryName === '기타';
+
                 const isThisLoading = group.requests.some(r => actionLoading === r.id);
 
                 return (
@@ -423,19 +411,12 @@ export default function AdminPage() {
 
                     <div className="admin-request-meta">
                       <span className="request-category">{group.category?.categoryName}</span>
-                      {!isEtc && (
-                        <>
-                          <span className={`badge ${group.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`}>
-                            {group.activityType === 'OFFICIAL' ? '공식' : '자율'}
-                          </span>
-                          <span className="badge badge-outline">
-                            {group.appliedHours}시간
-                          </span>
-                        </>
-                      )}
-                      {isEtc && (
-                        <span className="badge badge-warning">기타 (시간 배정 필요)</span>
-                      )}
+                      <span className={`badge ${group.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`}>
+                        {group.activityType === 'OFFICIAL' ? '공식' : '자율'}
+                      </span>
+                      <span className="badge badge-outline">
+                        {group.appliedHours}시간
+                      </span>
                     </div>
 
                     <div className="admin-request-description">
@@ -459,41 +440,7 @@ export default function AdminPage() {
                       </div>
                     )}
 
-                    {isEtc && (
-                      <div className="etc-edit-section">
-                        {group.requests.map((req) => (
-                          <div key={req.id} className="etc-edit-row" style={{ marginBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{req.user.name}:</span>
-                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-                              <div className="form-group form-group-inline" style={{ marginBottom: 0 }}>
-                                <label className="form-label">유형</label>
-                                <select
-                                  className="form-select"
-                                  value={etcEdits[req.id]?.activityType || 'OFFICIAL'}
-                                  onChange={(e) => updateEtcEdit(req.id, 'activityType', e.target.value as 'OFFICIAL' | 'AUTONOMOUS')}
-                                  disabled={isThisLoading}
-                                >
-                                  <option value="OFFICIAL">공식</option>
-                                  <option value="AUTONOMOUS">자율</option>
-                                </select>
-                              </div>
-                              <div className="form-group form-group-inline" style={{ marginBottom: 0 }}>
-                                <label className="form-label">시간</label>
-                                <input
-                                  type="number"
-                                  className="form-input"
-                                  min={0.5}
-                                  step={0.5}
-                                  value={etcEdits[req.id]?.hours || 0.5}
-                                  onChange={(e) => updateEtcEdit(req.id, 'hours', parseFloat(e.target.value))}
-                                  disabled={isThisLoading}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+
 
                     <div className="admin-request-actions">
                       <button
@@ -637,7 +584,7 @@ export default function AdminPage() {
                                 <div className="user-group-item-actions">
                                   <button
                                     className="btn btn-outline-danger btn-sm"
-                                    onClick={() => handleDelete(req.id)}
+                                    onClick={() => setDeleteRequest(req)}
                                     disabled={isThisLoading}
                                   >
                                     {isThisLoading ? <span className="loading-spinner-sm" /> : '삭제'}
@@ -710,6 +657,51 @@ export default function AdminPage() {
                   </span>
                 ) : (
                   '반려 확인'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteRequest && (
+        <div className="modal-overlay" onClick={() => setDeleteRequest(null)}>
+          <div className="modal glass-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">활동 내역 삭제</h3>
+              <button className="modal-close" onClick={() => setDeleteRequest(null)} aria-label="모달 닫기">✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-info">
+                <p>
+                  <strong>{deleteRequest.user.name}</strong>님의 <strong>{deleteRequest.category?.categoryName}</strong> 활동 내역을 정말로 삭제하시겠습니까?
+                </p>
+                <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                  ⚠️ 삭제 후에는 복구할 수 없습니다.
+                </p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-outline"
+                onClick={() => setDeleteRequest(null)}
+                disabled={actionLoading === deleteRequest.id}
+              >
+                취소
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => handleConfirmDelete(deleteRequest.id)}
+                disabled={actionLoading === deleteRequest.id}
+              >
+                {actionLoading === deleteRequest.id ? (
+                  <span className="btn-loading">
+                    <span className="loading-spinner-sm" />
+                    삭제 중…
+                  </span>
+                ) : (
+                  '삭제 확인'
                 )}
               </button>
             </div>

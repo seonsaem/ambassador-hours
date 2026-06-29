@@ -41,6 +41,18 @@ export default function DashboardPage() {
   const [resubmitFile, setResubmitFile] = useState<File | null>(null);
   const [resubmitLoading, setResubmitLoading] = useState(false);
 
+  // Expanded descriptions
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+
+  const toggleExpand = (id: number) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
@@ -242,11 +254,22 @@ export default function DashboardPage() {
                     </div>
                     <span className="request-date">{formatDate(req.createdAt)}</span>
                   </div>
-                  <p className="request-description">
-                    {req.description.length > 100
-                      ? `${req.description.slice(0, 100)}...`
-                      : req.description}
-                  </p>
+                  <div className="request-description">
+                    <p style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap', margin: 0 }}>
+                      {expanded.has(req.id) || req.description.length <= 80
+                        ? req.description
+                        : `${req.description.slice(0, 80)}…`}
+                    </p>
+                    {req.description.length > 80 && (
+                      <button
+                        className="btn-text"
+                        onClick={() => toggleExpand(req.id)}
+                        style={{ padding: '2px 0', fontSize: '0.78rem', marginTop: '4px', display: 'inline-block' }}
+                      >
+                        {expanded.has(req.id) ? '접기' : '더보기'}
+                      </button>
+                    )}
+                  </div>
                   <div className="request-card-footer">
                     {req.appliedHours !== null && (
                       <span className="request-hours">

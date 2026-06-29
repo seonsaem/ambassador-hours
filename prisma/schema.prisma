@@ -26,7 +26,9 @@ model ActivityCategory {
   activityType  String
   assignedHours Float
   isActive      Boolean  @default(true)
+  department    String?
   requests      ActivityRequest[]
+  maxHours      Float?
 }
 
 model ActivityRequest {

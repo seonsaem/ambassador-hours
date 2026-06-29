@@ -1924,7 +1924,7 @@ a:hover {
   object-fit: contain;
   margin-top: -10px;
   margin-bottom: -20px;
-  transform: translateX(-6px);
+  transform: translateX(-15px);
   filter: drop-shadow(0 4px 16px rgba(176, 154, 92, 0.25));
 }
 
@@ -2501,6 +2501,13 @@ a:hover {
     padding: var(--space-xl) var(--space-md);
     border-radius: var(--radius-xl);
   }
+
+  .auth-logo {
+    width: 100% !important;
+    max-width: 280px;
+    height: auto !important;
+    transform: translateX(0) !important;
+  }
 }
 
 /* ── Bulk Create User Grid ────────────────────────────────── */
@@ -2571,6 +2578,163 @@ a:hover {
 
 @media (max-width: 600px) {
   .bulk-user-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Mobile Layout Helper System ─────────────────────────── */
+.nav-links-desktop {
+  display: flex;
+}
+
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.col-5 {
+  grid-column: span 5;
+}
+
+.col-7 {
+  grid-column: span 7;
+}
+
+.category-edit-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+.desktop-only-table {
+  display: block !important;
+}
+
+.mobile-only-cards {
+  display: none !important;
+}
+
+/* Mobile Card Layouts */
+.mobile-card {
+  background: var(--bezel-outer-bg);
+  border: 1px solid var(--bezel-outer-ring);
+  border-radius: var(--bezel-outer-radius);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  box-shadow: var(--glass-shadow);
+  transition: all var(--transition-normal);
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: var(--space-sm);
+}
+
+.mobile-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mobile-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-card-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-xs) 0;
+}
+
+.mobile-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.mobile-card-row-label {
+  color: var(--text-secondary);
+}
+
+.mobile-card-row-value {
+  font-weight: 600;
+}
+
+.mobile-card-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.mobile-card-expand-content {
+  border-top: 1px dashed rgba(255, 255, 255, 0.04);
+  padding-top: var(--space-sm);
+  margin-top: var(--space-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+@media (max-width: 1024px) {
+  .grid-12 {
+    grid-template-columns: 1fr;
+  }
+  .col-5,
+  .col-7 {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-links-desktop {
+    display: none !important;
+  }
+
+  .navbar-user,
+  .btn-logout {
+    display: none !important;
+  }
+
+  .desktop-only-table {
+    display: none !important;
+  }
+
+  .mobile-only-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 600px) {
+  .category-edit-grid {
     grid-template-columns: 1fr;
   }
 }

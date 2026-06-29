@@ -93,17 +93,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine activityType and appliedHours
-    let activityType: string;
-    let appliedHours: number;
+    const activityType = category.activityType;
+    let appliedHours = category.assignedHours;
 
-    if (category.categoryName === '기타') {
-      // ETC category: leave blank for admin to fill in during approval
-      activityType = '';
-      appliedHours = 0;
-    } else {
-      // Snapshot from category
-      activityType = category.activityType;
-      appliedHours = category.assignedHours;
+    if (category.assignedHours === 0) {
+      const { appliedHours: reqAppliedHours } = body;
+      if (reqAppliedHours === undefined || typeof reqAppliedHours !== 'number' || reqAppliedHours <= 0) {
+        return NextResponse.json(
+          { error: '가변 시간 카테고리는 시간 입력이 필요합니다.' },
+          { status: 400 },
+        );
+      }
+      if (category.maxHours !== null && reqAppliedHours > category.maxHours) {
+        return NextResponse.json(
+          { error: `신청 시간이 최대 제한 시간(${category.maxHours}시간)을 초과했습니다.` },
+          { status: 400 },
+        );
+      }
+      appliedHours = reqAppliedHours;
     }
 
     const created = await prisma.activityRequest.create({

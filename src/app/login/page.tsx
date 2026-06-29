@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -67,7 +68,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <img src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" width="400" height="400" />
+          <Image src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" width={400} height={400} priority />
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">

@@ -64,7 +64,24 @@ export async function POST(request: NextRequest) {
 
     // Determine activity type and hours from category
     const activityType = category.activityType;
-    const appliedHours = category.assignedHours;
+    let appliedHours = category.assignedHours;
+
+    if (category.assignedHours === 0) {
+      const { appliedHours: reqAppliedHours } = body;
+      if (reqAppliedHours === undefined || typeof reqAppliedHours !== 'number' || reqAppliedHours <= 0) {
+        return NextResponse.json(
+          { error: '가변 시간 카테고리는 시간 입력이 필요합니다.' },
+          { status: 400 },
+        );
+      }
+      if (category.maxHours !== null && reqAppliedHours > category.maxHours) {
+        return NextResponse.json(
+          { error: `신청 시간이 최대 제한 시간(${category.maxHours}시간)을 초과했습니다.` },
+          { status: 400 },
+        );
+      }
+      appliedHours = reqAppliedHours;
+    }
 
     // Generate bulk label if not provided
     const label = bulkLabel?.trim() || `일괄신청_${new Date().toISOString().slice(0, 10)}`;

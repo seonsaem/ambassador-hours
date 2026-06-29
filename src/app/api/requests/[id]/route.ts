@@ -101,9 +101,9 @@ export async function PUT(
     const { description, evidenceFileUrl, categoryId } = body;
 
     if (description !== undefined) {
-      if (typeof description !== 'string' || description.trim().length < 10 || description.length > 2000) {
+      if (typeof description !== 'string' || description.trim().length < 5 || description.length > 2000) {
         return NextResponse.json(
-          { error: 'Description must be between 10 and 2000 characters long' },
+          { error: 'Description must be between 5 and 2000 characters long' },
           { status: 400 },
         );
       }
@@ -145,7 +145,7 @@ export async function PUT(
 
       updateData.categoryId = categoryId;
 
-      if (newCategory.categoryName === '기타') {
+      if (newCategory.assignedHours === 0) {
         updateData.activityType = '';
         updateData.appliedHours = 0;
       } else {
