@@ -33,8 +33,18 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { status, role } = body;
+    const { status, role, name } = body;
     const dataToUpdate: Prisma.UserUpdateInput = {};
+
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim().length === 0) {
+        return NextResponse.json(
+          { error: '이름은 비어있을 수 없습니다.' },
+          { status: 400 },
+        );
+      }
+      dataToUpdate.name = name.trim();
+    }
 
     if (status) {
       if (!['ACTIVE', 'BANNED'].includes(status)) {

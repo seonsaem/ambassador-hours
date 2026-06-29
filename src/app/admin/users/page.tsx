@@ -186,6 +186,39 @@ export default function UsersPage() {
     }
   };
 
+  const handleNameChange = async (userId: number, currentName: string) => {
+    const newName = prompt('변경할 이름을 입력하세요:', currentName);
+    if (newName === null) return;
+    const trimmed = newName.trim();
+    if (!trimmed) {
+      alert('이름은 비어있을 수 없습니다.');
+      return;
+    }
+    if (trimmed === currentName) return;
+
+    setActionLoading(userId);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || '이름 변경 실패');
+      }
+
+      await fetchUsers();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '이름 변경 중 오류가 발생했습니다.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const getStatusBadge = (userStatus: string) => {
     switch (userStatus) {
       case 'ACTIVE':
@@ -395,7 +428,15 @@ export default function UsersPage() {
                           {breakdown.length > 0 && (
                             <span style={{ marginRight: '6px', fontSize: '0.75rem', opacity: 0.6, display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▶</span>
                           )}
-                          {user.name}
+                          <span style={{ marginRight: '8px' }}>{user.name}</span>
+                          <button
+                            className="btn-text"
+                            onClick={(e) => { e.stopPropagation(); handleNameChange(user.id, user.name); }}
+                            style={{ fontSize: '0.8rem', padding: '2px 4px', opacity: 0.7 }}
+                            title="이름 변경"
+                          >
+                            ✏️
+                          </button>
                         </td>
                         <td className="td-email">{user.email}</td>
                         <td>{getStatusBadge(user.status)}</td>
@@ -562,7 +603,15 @@ export default function UsersPage() {
                         {breakdown.length > 0 && (
                           <span style={{ marginRight: '6px', fontSize: '0.65rem', opacity: 0.6, display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▶</span>
                         )}
-                        {user.name}
+                        <span style={{ marginRight: '8px' }}>{user.name}</span>
+                        <button
+                          className="btn-text"
+                          onClick={(e) => { e.stopPropagation(); handleNameChange(user.id, user.name); }}
+                          style={{ fontSize: '0.75rem', padding: '2px 4px', opacity: 0.7 }}
+                          title="이름 변경"
+                        >
+                          ✏️
+                        </button>
                       </span>
                       <span className="mobile-card-subtitle">{user.email}</span>
                     </div>

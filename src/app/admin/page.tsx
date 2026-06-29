@@ -496,7 +496,8 @@ export default function AdminPage() {
                 groups = Object.values(grouped);
               }
 
-              groups.sort((a, b) => a.user.name.localeCompare(b.user.name));
+              const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
+              groups.sort((a, b) => collator.compare(a.user.name, b.user.name));
 
               return groups.map((group) => {
                 const totalHours = group.requests.reduce((sum, r) => sum + (r.appliedHours || 0), 0);
