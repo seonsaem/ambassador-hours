@@ -81,16 +81,23 @@ export async function PUT(
       );
     }
 
-    // GUARD: Only rejected requests can be resubmitted
-    if (existingRequest.status !== 'REJECTED') {
+    // GUARD: Only pending or rejected requests can be edited/resubmitted
+    if (existingRequest.status !== 'REJECTED' && existingRequest.status !== 'PENDING') {
       return NextResponse.json(
-        { error: 'Only rejected requests can be resubmitted' },
+        { error: 'Only pending or rejected requests can be modified' },
         { status: 400 },
       );
     }
 
-    // GUARD: Only the owner can resubmit
-    if (existingRequest.userId !== Number(session!.user.id)) {
+    // GUARD: Only the owner, creator, or admin can resubmit
+    const isOwner = existingRequest.userId === Number(session!.user.id);
+    const isCreator = existingRequest.createdById === Number(session!.user.id);
+    const dbUser = await prisma.user.findUnique({
+      where: { id: Number(session!.user.id) },
+    });
+    const isAdmin = dbUser?.role === 'ADMIN';
+
+    if (!isOwner && !isCreator && !isAdmin) {
       return NextResponse.json(
         { error: 'You can only edit your own requests' },
         { status: 403 },
@@ -98,7 +105,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { description, evidenceFileUrl, categoryId } = body;
+    const { description, evidenceFileUrl, categoryId, appliedHours, activityDate, userIds } = body;
 
     if (description !== undefined) {
       if (typeof description !== 'string' || description.trim().length < 5 || description.length > 2000) {
@@ -121,11 +128,12 @@ export async function PUT(
 
     // Build update data
     const updateData: Prisma.ActivityRequestUncheckedUpdateInput = {
-      description: description || existingRequest.description,
+      description: description !== undefined ? description : existingRequest.description,
       evidenceFileUrl:
         evidenceFileUrl !== undefined
           ? evidenceFileUrl
           : existingRequest.evidenceFileUrl,
+      activityDate: activityDate !== undefined ? new Date(activityDate) : existingRequest.activityDate,
       status: 'PENDING',
       rejectedReason: null,
     };
@@ -147,11 +155,160 @@ export async function PUT(
 
       if (newCategory.assignedHours === 0) {
         updateData.activityType = '';
-        updateData.appliedHours = 0;
+        updateData.appliedHours = appliedHours !== undefined ? Number(appliedHours) : 0;
       } else {
         updateData.activityType = newCategory.activityType;
         updateData.appliedHours = newCategory.assignedHours;
       }
+    } else if (appliedHours !== undefined) {
+      // Even if categoryId didn't change, allow updating hours if the category is variable hours (assignedHours === 0)
+      const currentCategory = await prisma.activityCategory.findUnique({
+        where: { id: existingRequest.categoryId },
+      });
+      if (currentCategory && currentCategory.assignedHours === 0) {
+        updateData.appliedHours = Number(appliedHours);
+      }
+    }
+
+    // Bulk update OR conversion to bulk request
+    const isBulkEdit = existingRequest.bulkLabel || (Array.isArray(userIds) && userIds.length >= 2);
+
+    if (isBulkEdit && Array.isArray(userIds)) {
+      if (userIds.length === 0) {
+        return NextResponse.json(
+          { error: '통합 신청에는 최소 1명 이상의 인원이 필요합니다.' },
+          { status: 400 },
+        );
+      }
+
+      // Fetch all requests sharing the same bulkLabel if it exists, otherwise just this request
+      const existingBulkRequests = existingRequest.bulkLabel
+        ? await prisma.activityRequest.findMany({
+            where: { bulkLabel: existingRequest.bulkLabel },
+          })
+        : [existingRequest];
+
+      const dbUser = await prisma.user.findUnique({
+        where: { id: Number(session!.user.id) },
+      });
+      const isAdmin = dbUser?.role === 'ADMIN';
+
+      // GUARD: Check if any of the existing bulk requests have been APPROVED
+      const hasApproved = existingBulkRequests.some(r => r.status === 'APPROVED');
+      if (!isAdmin && hasApproved) {
+        return NextResponse.json(
+          { error: '승인된 활동이 포함된 통합 신청은 수정할 수 없습니다.' },
+          { status: 400 },
+        );
+      }
+
+      const isOwner = existingBulkRequests.every(r => r.createdById === Number(session!.user.id) || r.userId === Number(session!.user.id));
+      if (!isAdmin && !isOwner) {
+        return NextResponse.json(
+          { error: 'You are not authorized to edit this request' },
+          { status: 403 },
+        );
+      }
+
+      // Determine final bulkLabel name or clear it if it becomes a single request (only 1 user left)
+      let newBulkLabel: string | null = null;
+      const finalActivityDate = updateData.activityDate !== undefined ? (updateData.activityDate as Date) : existingRequest.activityDate;
+
+      if (userIds.length >= 2) {
+        const dateStr = finalActivityDate.toISOString().slice(0, 10);
+        newBulkLabel = `일괄신청_${dateStr}`;
+      } else {
+        newBulkLabel = null;
+      }
+
+      // Calculate diff for userIds
+      const toDeleteIds = existingBulkRequests
+        .filter(r => !userIds.includes(r.userId))
+        .map(r => r.id);
+
+      const toUpdateIds = existingBulkRequests
+        .filter(r => userIds.includes(r.userId))
+        .map(r => r.id);
+
+      const toCreateUserIds = userIds.filter(
+        id => !existingBulkRequests.map(r => r.userId).includes(id)
+      );
+
+      // Verify new users exist and are ACTIVE
+      if (toCreateUserIds.length > 0) {
+        const activeUsers = await prisma.user.findMany({
+          where: {
+            id: { in: toCreateUserIds },
+            status: 'ACTIVE',
+          },
+          select: { id: true },
+        });
+        const validNewUserIds = activeUsers.map(u => u.id);
+        if (validNewUserIds.length !== toCreateUserIds.length) {
+          return NextResponse.json(
+            { error: '선택된 유저 중 비활성화되었거나 존재하지 않는 유저가 있습니다.' },
+            { status: 400 },
+          );
+        }
+      }
+
+      // Compute details for new requests
+      const finalCategoryId = updateData.categoryId !== undefined ? (updateData.categoryId as number) : existingRequest.categoryId;
+      const finalAppliedHours = updateData.appliedHours !== undefined ? (updateData.appliedHours as number) : existingRequest.appliedHours;
+      const finalActivityType = updateData.activityType !== undefined ? (updateData.activityType as string) : existingRequest.activityType;
+
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Delete removed users
+        if (toDeleteIds.length > 0) {
+          await tx.activityRequest.deleteMany({
+            where: { id: { in: toDeleteIds } },
+          });
+        }
+
+        // 2. Update remaining users
+        if (toUpdateIds.length > 0) {
+          await tx.activityRequest.updateMany({
+            where: { id: { in: toUpdateIds } },
+            data: {
+              categoryId: finalCategoryId,
+              activityType: finalActivityType,
+              appliedHours: finalAppliedHours,
+              description: updateData.description as string,
+              evidenceFileUrl: updateData.evidenceFileUrl as string | null,
+              activityDate: finalActivityDate,
+              bulkLabel: newBulkLabel,
+              status: 'PENDING',
+              rejectedReason: null,
+            },
+          });
+        }
+
+        // 3. Create newly added users
+        for (const userId of toCreateUserIds) {
+          await tx.activityRequest.create({
+            data: {
+              userId,
+              categoryId: finalCategoryId,
+              activityType: finalActivityType,
+              appliedHours: finalAppliedHours,
+              description: updateData.description as string,
+              evidenceFileUrl: updateData.evidenceFileUrl as string | null,
+              activityDate: finalActivityDate,
+              bulkLabel: newBulkLabel,
+              status: 'PENDING',
+              createdById: Number(session!.user.id),
+            },
+          });
+        }
+
+        // Return one of the updated/created records
+        return tx.activityRequest.findFirst({
+          where: newBulkLabel ? { bulkLabel: newBulkLabel } : { id: requestId },
+          include: { category: true },
+        });
+      });
+
+      return NextResponse.json(result);
     }
 
     const updated = await prisma.activityRequest.update({
@@ -210,17 +367,56 @@ export async function DELETE(
       );
     }
 
-    // GUARD: Only the owner or admin can delete
-    if (!isAdmin && existingRequest.userId !== Number(session!.user.id)) {
+    // GUARD: In bulk delete, block if any requests under the bulkLabel are APPROVED
+    if (!isAdmin && existingRequest.bulkLabel) {
+      const approvedCount = await prisma.activityRequest.count({
+        where: {
+          bulkLabel: existingRequest.bulkLabel,
+          status: 'APPROVED',
+        },
+      });
+      if (approvedCount > 0) {
+        return NextResponse.json(
+          { error: '승인된 활동이 포함된 통합 신청은 삭제할 수 없습니다.' },
+          { status: 400 },
+        );
+      }
+    }
+
+    // GUARD: Only the owner, creator or admin can delete
+    const isRequestOwner = existingRequest.userId === Number(session!.user.id);
+    const isRequestCreator = existingRequest.createdById === Number(session!.user.id);
+
+    console.log('[DEBUG DELETE GUARD]', {
+      requestId,
+      userId: existingRequest.userId,
+      createdById: existingRequest.createdById,
+      sessionUserId: Number(session!.user.id),
+      isRequestOwner,
+      isRequestCreator,
+      isAdmin
+    });
+
+    if (!isAdmin && !isRequestOwner && !isRequestCreator) {
       return NextResponse.json(
         { error: 'You can only delete your own requests' },
         { status: 403 },
       );
     }
 
-    await prisma.activityRequest.delete({
-      where: { id: requestId },
-    });
+    if (existingRequest.bulkLabel) {
+      await prisma.activityRequest.deleteMany({
+        where: {
+          bulkLabel: existingRequest.bulkLabel,
+          categoryId: existingRequest.categoryId,
+          description: existingRequest.description,
+        },
+      });
+    } else {
+      await prisma.activityRequest.delete({
+        where: { id: requestId },
+      });
+    }
 
     return NextResponse.json({ message: 'Request deleted successfully' });
   } catch (error) {

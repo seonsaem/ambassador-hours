@@ -154,6 +154,7 @@ body {
   line-height: 1.6;
   min-height: 100dvh;
   overflow-x: hidden;
+  overflow-y: scroll;
   position: relative;
 }
 
@@ -876,13 +877,13 @@ a:hover {
   justify-content: center;
   gap: var(--space-sm);
   padding: 10px 22px;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-full);
   font-family: var(--font-sans);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: transform 400ms cubic-bezier(0.32, 0.72, 0, 1), background-color 200ms ease, box-shadow 200ms ease, color 200ms ease, border-color 200ms ease;
   text-decoration: none;
   white-space: nowrap;
   line-height: 1.4;
@@ -897,7 +898,12 @@ a:hover {
 }
 
 .btn:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.975) translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--secondary-light);
+  outline-offset: 2px;
 }
 
 .btn-sm {
@@ -1711,6 +1717,8 @@ a:hover {
   font-weight: 400;
   flex-grow: 1;
   font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .request-card .request-date,
@@ -1727,6 +1735,7 @@ a:hover {
   font-size: 1.25rem;
   color: var(--secondary);
   text-shadow: 0 0 12px rgba(243, 207, 69, 0.15);
+  white-space: nowrap;
 }
 
 .request-card-header,
@@ -1772,6 +1781,8 @@ a:hover {
 .rejected-reason {
   font-size: 0.82rem;
   color: var(--danger-light);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .rejected-reason-label {
@@ -2145,6 +2156,7 @@ a:hover {
   color: var(--text-secondary);
   margin-bottom: var(--space-sm);
   white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .user-group-item-reason {
@@ -2155,6 +2167,8 @@ a:hover {
   border-radius: var(--radius-sm);
   margin-bottom: var(--space-sm);
   border-left: 3px solid var(--danger);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .user-group-item-actions {

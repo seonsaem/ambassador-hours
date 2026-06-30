@@ -10,15 +10,18 @@ export async function GET() {
     const isAdmin = dbUser?.role === 'ADMIN';
 
     const requests = await prisma.activityRequest.findMany({
-      where: isAdmin ? {} : { userId: Number(session!.user.id) },
+      where: isAdmin
+        ? {}
+        : {
+            OR: [
+              { userId: Number(session!.user.id) },
+              { createdById: Number(session!.user.id) },
+            ],
+          },
       include: {
         category: true,
-        ...(isAdmin
-          ? {
-              user: { select: { id: true, name: true, email: true } },
-              createdBy: { select: { id: true, name: true, email: true } },
-            }
-          : {}),
+        user: { select: { id: true, name: true, email: true } },
+        createdBy: { select: { id: true, name: true, email: true } },
       },
       orderBy: { createdAt: 'desc' },
     });

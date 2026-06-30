@@ -353,7 +353,7 @@ export default function NewRequestPage() {
                 {loading ? (
                   <span className="btn-loading">
                     <span className="loading-spinner-sm" />
-                    신청 중...
+                    신청 중…
                   </span>
                 ) : (
                   '활동 신청'
