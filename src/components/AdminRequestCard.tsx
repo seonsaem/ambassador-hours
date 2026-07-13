@@ -13,6 +13,21 @@ interface AdminRequestCardProps {
   setRejectReason: (reason: string) => void;
   formatDateOnly: (dateStr: string) => string;
 }
+const sortUsersByGeneration = (users: User[]): User[] => {
+  const getGeneration = (name: string): number => {
+    const match = name.match(/(\d+)기/);
+    return match ? parseInt(match[1], 10) : Infinity;
+  };
+
+  return [...users].sort((a, b) => {
+    const genA = getGeneration(a.name);
+    const genB = getGeneration(b.name);
+    if (genA !== genB) {
+      return genA - genB;
+    }
+    return a.name.localeCompare(b.name, 'ko');
+  });
+};
 
 export default function AdminRequestCard({
   group,
@@ -51,7 +66,7 @@ export default function AdminRequestCard({
               </div>
               {expandedUsersList.has(group.id) && (
                 <div className="bulk-users-expanded-list" style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.04)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', width: '100%' }}>
-                  {group.users.map((u: User) => (
+                  {sortUsersByGeneration(group.users).map((u: User) => (
                     <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
                       <span style={{ fontWeight: 600 }}>{u.name}</span>
                     </div>
@@ -96,7 +111,7 @@ export default function AdminRequestCard({
         }}>
           {group.description}
         </p>
-        {group.description.length > 40 && (
+        {(group.description.length > 40 || group.description.includes('\n')) && (
           <button className="btn-text" onClick={() => toggleExpand(group.requests[0].id)} style={{ color: '#b09a5c', fontWeight: 600, marginTop: '4px' }}>
             {expanded.has(group.requests[0].id) ? '간략히 보기' : '자세히 보기'}
           </button>
