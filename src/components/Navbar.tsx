@@ -28,6 +28,93 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const mobileNavRef = useRef<HTMLDivElement>(null);
 
+  // Web Push states
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [pushSupported, setPushSupported] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+      setPushSupported(true);
+      
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => {
+          return reg.pushManager.getSubscription();
+        })
+        .then((sub) => {
+          if (sub) {
+            setIsSubscribed(true);
+          }
+        })
+        .catch((err) => {
+          console.error('Service worker registration failed:', err);
+        });
+    }
+  }, []);
+
+  const base64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  const handlePushToggle = async () => {
+    if (!pushSupported) return;
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      
+      if (isSubscribed) {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await sub.unsubscribe();
+          await fetch('/api/push/subscribe', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: sub.endpoint }),
+          });
+        }
+        setIsSubscribed(false);
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          alert('알림 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해 주세요.');
+          return;
+        }
+
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidPublicKey) {
+          console.error('VAPID public key is missing');
+          return;
+        }
+
+        const convertedKey = base64ToUint8Array(vapidPublicKey);
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedKey,
+        });
+
+        const res = await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription: sub }),
+        });
+
+        if (res.ok) {
+          setIsSubscribed(true);
+        } else {
+          console.error('Failed to save push subscription on server');
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling push notification:', error);
+    }
+  };
+
   const isAdmin = session?.user?.role === 'ADMIN';
   const navItems = isAdmin ? [...userNavItems, ...adminNavItems] : userNavItems;
 
@@ -180,6 +267,38 @@ export default function Navbar() {
             gap: '12px'
           }}
         >
+          {pushSupported && (
+            <button
+              onClick={handlePushToggle}
+              title={isSubscribed ? '알림 끄기' : '알림 켜기'}
+              style={{
+                background: isSubscribed ? 'rgba(176, 154, 92, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                border: isSubscribed ? '1px solid rgba(176, 154, 92, 0.4)' : '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: isSubscribed ? '#b09a5c' : 'var(--text-muted)',
+                fontSize: '0.9rem',
+                transition: 'all 200ms ease',
+                padding: 0
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                if (!isSubscribed) e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                if (!isSubscribed) e.currentTarget.style.color = 'var(--text-muted)';
+              }}
+            >
+              {isSubscribed ? '🔔' : '🔕'}
+            </button>
+          )}
+
           {/* User profile chip */}
           <div 
             className="navbar-user"
@@ -348,6 +467,32 @@ export default function Navbar() {
           <strong style={{ fontSize: '1.25rem', color: 'var(--text-primary)', display: 'block', marginTop: '4px' }}>{session.user?.name}</strong>
         </div>
         
+        {pushSupported && (
+          <button
+            onClick={handlePushToggle}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-md)',
+              background: isSubscribed ? 'rgba(176, 154, 92, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+              border: isSubscribed ? '1px solid rgba(176, 154, 92, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
+              color: isSubscribed ? '#b09a5c' : 'var(--text-muted)',
+              fontSize: '1rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              width: '100%',
+              textAlign: 'left',
+              transition: 'all 200ms ease',
+              marginBottom: '12px'
+            }}
+          >
+            <span>푸시 알림 수신 설정</span>
+            <span>{isSubscribed ? '🔔 켜짐' : '🔕 꺼짐'}</span>
+          </button>
+        )}
+
         {navItems.map((item, idx) => {
           const isActive = pathname === item.href;
           return (

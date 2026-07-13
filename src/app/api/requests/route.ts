@@ -134,6 +134,31 @@ export async function POST(request: NextRequest) {
       include: { category: true },
     });
 
+    // Notify all administrators about the new request
+    try {
+      const admins = await prisma.user.findMany({
+        where: { role: 'ADMIN' },
+        select: { id: true },
+      });
+      const applicantName = session.user.name || '홍보대사';
+      const categoryName = created.category?.categoryName || '활동';
+
+      const { sendPushNotification } = await import('@/lib/push');
+      const pushPromises = admins.map((admin) =>
+        sendPushNotification(admin.id, {
+          title: '[홍보대사 활동 신청]',
+          body: `${applicantName}님이 '${categoryName}' 신청을 제출했습니다.`,
+          url: '/admin',
+        })
+      );
+      // Execute pushes asynchronously to avoid blocking the API response
+      Promise.all(pushPromises).catch((err) =>
+        console.error('[WebPush] Error pushing to admins:', err)
+      );
+    } catch (pushErr) {
+      console.error('[WebPush] Notice trigger failed:', pushErr);
+    }
+
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error('POST /api/requests error:', error);

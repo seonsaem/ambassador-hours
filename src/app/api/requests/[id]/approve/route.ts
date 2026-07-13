@@ -94,6 +94,24 @@ export async function POST(
       include: { category: true },
     });
 
+    // Notify the user who requested the activity approval
+    try {
+      const { sendPushNotification } = await import('@/lib/push');
+      const categoryName = updated.category?.categoryName || '활동';
+      const hours = updated.appliedHours;
+
+      // Execute push asynchronously
+      sendPushNotification(updated.userId, {
+        title: '[활동 승인 완료]',
+        body: `신청하신 '${categoryName}' 활동이 승인되었습니다 (${hours}시간)`,
+        url: '/dashboard',
+      }).catch((err) =>
+        console.error('[WebPush] Error pushing approval to user:', err)
+      );
+    } catch (pushErr) {
+      console.error('[WebPush] Notice trigger failed:', pushErr);
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error('POST /api/requests/[id]/approve error:', error);

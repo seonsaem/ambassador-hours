@@ -76,6 +76,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Notify all subscribed users about the new notice
+    try {
+      const { sendPushToAllUsers } = await import('@/lib/push');
+      
+      // Execute push asynchronously
+      sendPushToAllUsers({
+        title: '[공지사항]',
+        body: created.title,
+        url: '/dashboard',
+      }).catch((err) =>
+        console.error('[WebPush] Error pushing new notice to all users:', err)
+      );
+    } catch (pushErr) {
+      console.error('[WebPush] Notice trigger failed:', pushErr);
+    }
+
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error('POST /api/notices error:', error);

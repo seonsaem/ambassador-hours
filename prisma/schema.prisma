@@ -19,6 +19,7 @@ model User {
   createdRequests ActivityRequest[] @relation("CreatedRequests")
   files     FileStore[]
   notices   Notice[]  @relation("AuthoredNotices")
+  pushSubscriptions PushSubscription[]
 }
 
 model ActivityCategory {
@@ -70,4 +71,14 @@ model FileStore {
   uploadedById Int?     // Nullable for backward compatibility
   uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
   createdAt    DateTime @default(now())
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
