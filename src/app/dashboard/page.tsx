@@ -10,6 +10,7 @@ import Modal from '@/components/Modal';
 import CustomDropdown from '@/components/CustomDropdown';
 import DashboardRequestCard from '@/components/DashboardRequestCard';
 import NoticeBoard from '@/components/NoticeBoard';
+import DeleteConfirmModal from '@/components/DeleteConfirmModal';
 import type { Category, User, Request, GroupedRequest } from '@/types';
 
 export default function DashboardPage() {
@@ -41,6 +42,8 @@ export default function DashboardPage() {
   const [editActivityDate, setEditActivityDate] = useState('');
   const [editUserIds, setEditUserIds] = useState<number[]>([]);
   const [editLoading, setEditLoading] = useState(false);
+  const [deleteRequest, setDeleteRequest] = useState<Request | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeUsers, setActiveUsers] = useState<User[]>([]);
 
@@ -270,8 +273,15 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDeleteClick = async (id: number) => {
-    if (typeof window !== 'undefined' && !window.confirm('정말로 이 활동 신청을 삭제하시겠습니까?')) return;
+  const handleDeleteClick = (id: number) => {
+    const req = requests.find((r) => r.id === id);
+    if (req) {
+      setDeleteRequest(req);
+    }
+  };
+
+  const handleConfirmDelete = async (id: number) => {
+    setDeleteLoading(true);
     setError('');
 
     try {
@@ -285,8 +295,11 @@ export default function DashboardPage() {
       }
 
       await fetchRequests();
+      setDeleteRequest(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : '삭제 중 오류가 발생했습니다.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -651,6 +664,16 @@ export default function DashboardPage() {
           </>
         )}
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteRequest}
+        onClose={() => setDeleteRequest(null)}
+        onConfirm={() => deleteRequest && handleConfirmDelete(deleteRequest.id)}
+        isLoading={deleteLoading}
+        userName={deleteRequest?.user?.name}
+        categoryName={deleteRequest?.category?.categoryName}
+      />
 
       {/* Floating Action Button (mobile) */}
       <Link href="/dashboard/new" className="fab" aria-label="활동 신청">
