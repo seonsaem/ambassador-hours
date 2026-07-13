@@ -53,7 +53,7 @@ export default function AdminRequestCard({
               <span className="badge badge-purple" style={{ alignSelf: 'flex-start', marginBottom: '2px' }}>통합 신청: {group.bulkLabel?.replace('일괄신청_', '')}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span className="admin-request-username">
-                  {group.createdBy?.name || group.users[0]?.name}
+                  {group.createdBy?.name || sortUsersByGeneration(group.users)[0]?.name}
                   {group.users.length > 1 ? ` 외 ${group.users.length - 1}명` : ''}
                 </span>
                 <button
@@ -64,15 +64,6 @@ export default function AdminRequestCard({
                   {expandedUsersList.has(group.id) ? '접기' : '명단 보기'}
                 </button>
               </div>
-              {expandedUsersList.has(group.id) && (
-                <div className="bulk-users-expanded-list" style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.04)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', width: '100%' }}>
-                  {sortUsersByGeneration(group.users).map((u: User) => (
-                    <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
-                      <span style={{ fontWeight: 600 }}>{u.name}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
             <>
@@ -80,8 +71,18 @@ export default function AdminRequestCard({
             </>
           )}
         </div>
-        <span className="request-date">활동일: {formatDateOnly(group.activityDate || group.createdAt)}</span>
+        <span className="request-date" style={{ flexShrink: 0 }}>활동일: {formatDateOnly(group.activityDate || group.createdAt)}</span>
       </div>
+
+      {group.bulkLabel && expandedUsersList.has(group.id) && (
+        <div className="bulk-users-expanded-list" style={{ marginTop: '0.75rem', marginBottom: '0.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.04)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', width: '100%' }}>
+          {sortUsersByGeneration(group.users).map((u: User) => (
+            <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+              <span style={{ fontWeight: 600 }}>{u.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="admin-request-meta">
         <span className="request-category">{group.category?.categoryName}</span>

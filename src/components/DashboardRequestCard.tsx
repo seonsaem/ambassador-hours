@@ -97,48 +97,38 @@ export default function DashboardRequestCard({
           )}
         </div>
         
-        {group.bulkLabel && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%', marginTop: '0.25rem' }}>
-            <div style={{ 
-              fontSize: '0.85rem', 
-              color: 'var(--text-secondary)', 
-              background: 'rgba(255, 255, 255, 0.03)',
-              padding: '0.5rem 0.75rem',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.5rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ opacity: 0.7 }}>👥 신청 인원:</span> 
-                <span>
-                  {group.users[0]?.name || '로딩중…'}
-                  {group.users.length > 1 ? ` 외 ${group.users.length - 1}명` : ''}
-                </span>
-              </div>
-              {group.users.length > 0 && (
-                <button
-                  className="btn-text"
-                  onClick={() => setUsersExpanded(!usersExpanded)}
-                  style={{ fontSize: '0.8rem', fontWeight: 600, color: '#b09a5c', padding: '0 4px', cursor: 'pointer', background: 'none', border: 'none' }}
-                >
-                  {usersExpanded ? '접기' : '명단 보기'}
-                </button>
-              )}
-            </div>
-            {usersExpanded && (
-              <div className="bulk-users-expanded-list" style={{ marginTop: '0.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.02)', padding: '0.5rem', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.05)', width: '100%' }}>
-                {sortUsersByGeneration(group.users).map((u: User) => (
-                  <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
-                    <span style={{ fontWeight: 600 }}>{u.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+        {group.bulkLabel ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+            <span className="admin-request-username" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+              {sortUsersByGeneration(group.users)[0]?.name || '로딩중…'}
+              {group.users.length > 1 ? ` 외 ${group.users.length - 1}명` : ''}
+            </span>
+            <button
+              className="btn-text"
+              onClick={() => setUsersExpanded(!usersExpanded)}
+              style={{ fontSize: '0.8rem', fontWeight: 600, color: '#b09a5c', padding: '0 4px', cursor: 'pointer', background: 'none', border: 'none' }}
+            >
+              {usersExpanded ? '접기' : '명단 보기'}
+            </button>
+          </div>
+        ) : (
+          <div style={{ marginTop: '0.25rem' }}>
+            <span className="admin-request-username" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+              {group.users[0]?.name}
+            </span>
           </div>
         )}
       </div>
+
+      {group.bulkLabel && usersExpanded && (
+        <div className="bulk-users-expanded-list" style={{ marginTop: '0.75rem', marginBottom: '0.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.02)', padding: '0.5rem', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.05)', width: '100%' }}>
+          {sortUsersByGeneration(group.users).map((u: User) => (
+            <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+              <span style={{ fontWeight: 600 }}>{u.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
       
       <div className="request-description" style={{ marginTop: '1rem', flexGrow: 1 }}>
         <p style={{
