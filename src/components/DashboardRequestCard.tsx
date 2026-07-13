@@ -56,27 +56,50 @@ export default function DashboardRequestCard({
       style={{ animationDelay: `${index * 0.05}s`, display: 'flex', flexDirection: 'column' }}
     >
       <div className="request-card-header" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.75rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
-        <div className="request-card-header-top">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: 0 }}>
-            <span className="request-category" style={{ 
-              fontSize: '1.1rem', 
-              lineHeight: '1.3',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              fontWeight: 700,
-              display: 'block'
-            }} title={group.category?.categoryName}>
-              {group.category?.categoryName}
-            </span>
-            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <StatusBadge status={group.status} />
-              {getActivityBadge(group.activityType)}
-              {group.bulkLabel && (
-                <span className="badge badge-purple" style={{ fontSize: '0.72rem' }}>통합 신청</span>
-              )}
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+          <span className="request-category" style={{ 
+            fontSize: '1.1rem', 
+            lineHeight: '1.3',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            fontWeight: 700,
+            display: 'block'
+          }} title={group.category?.categoryName}>
+            {group.category?.categoryName}
+          </span>
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <StatusBadge status={group.status} />
+            {getActivityBadge(group.activityType)}
+            {group.bulkLabel && (
+              <span className="badge badge-purple" style={{ fontSize: '0.72rem' }}>통합 신청</span>
+            )}
           </div>
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
+          {group.bulkLabel ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span className="admin-request-username" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                {sortUsersByGeneration(group.users)[0]?.name || '로딩중…'}
+                {group.users.length > 1 ? ` 외 ${group.users.length - 1}명` : ''}
+              </span>
+              <button
+                className="btn-text"
+                onClick={() => setUsersExpanded(!usersExpanded)}
+                style={{ fontSize: '0.8rem', fontWeight: 600, color: '#b09a5c', padding: '0 4px', cursor: 'pointer', background: 'none', border: 'none' }}
+              >
+                {usersExpanded ? '접기' : '명단 보기'}
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span className="admin-request-username" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                {group.users[0]?.name}
+              </span>
+            </div>
+          )}
+
           {canModify && (group.status === 'PENDING' || group.status === 'REJECTED') && (
             <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
               <button
@@ -96,28 +119,6 @@ export default function DashboardRequestCard({
             </div>
           )}
         </div>
-        
-        {group.bulkLabel ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-            <span className="admin-request-username" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-              {sortUsersByGeneration(group.users)[0]?.name || '로딩중…'}
-              {group.users.length > 1 ? ` 외 ${group.users.length - 1}명` : ''}
-            </span>
-            <button
-              className="btn-text"
-              onClick={() => setUsersExpanded(!usersExpanded)}
-              style={{ fontSize: '0.8rem', fontWeight: 600, color: '#b09a5c', padding: '0 4px', cursor: 'pointer', background: 'none', border: 'none' }}
-            >
-              {usersExpanded ? '접기' : '명단 보기'}
-            </button>
-          </div>
-        ) : (
-          <div style={{ marginTop: '0.25rem' }}>
-            <span className="admin-request-username" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-              {group.users[0]?.name}
-            </span>
-          </div>
-        )}
       </div>
 
       {group.bulkLabel && usersExpanded && (
