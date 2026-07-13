@@ -5,52 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import AdminRequestCard from '@/components/AdminRequestCard';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-interface Category {
-  id: number;
-  categoryName: string;
-  activityType: 'OFFICIAL' | 'AUTONOMOUS';
-  assignedHours: number;
-  maxHours?: number | null;
-}
-
-interface Request {
-  id: number;
-  description: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  activityType: 'OFFICIAL' | 'AUTONOMOUS' | null;
-  appliedHours: number | null;
-  rejectedReason: string | null;
-  evidenceFileUrl: string | null;
-  createdAt: string;
-  activityDate?: string | null;
-  user: User;
-  category: Category;
-  categoryId: number;
-  bulkLabel: string | null;
-  createdBy?: User | null;
-}
-
-interface GroupedRequest {
-  id: string;
-  bulkLabel: string | null;
-  category: Category;
-  activityType: 'OFFICIAL' | 'AUTONOMOUS' | null;
-  appliedHours: number | null;
-  description: string;
-  evidenceFileUrl: string | null;
-  createdAt: string;
-  activityDate?: string | null;
-  users: User[];
-  requests: Request[];
-  createdBy?: User | null;
-}
+import type { User, Category, Request, GroupedRequest } from '@/types';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -69,8 +24,6 @@ export default function AdminPage() {
   // Delete modal state
   const [deleteRequest, setDeleteRequest] = useState<Request | null>(null);
 
-
-
   // Expanded descriptions
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
@@ -88,10 +41,6 @@ export default function AdminPage() {
       return next;
     });
   };
-
-
-
-
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -342,13 +291,15 @@ export default function AdminPage() {
                       evidenceFileUrl: req.evidenceFileUrl,
                       createdAt: req.createdAt,
                       activityDate: req.activityDate,
+                      status: req.status,
+                      rejectedReason: req.rejectedReason,
                       createdBy: req.createdBy,
                       users: [],
                       requests: []
                     };
                     groupedPending.push(groups[key]);
                   }
-                  groups[key].users.push(req.user);
+                  if (req.user) groups[key].users.push(req.user);
                   groups[key].requests.push(req);
                 } else {
                   const key = `single-${req.id}`;
@@ -362,7 +313,9 @@ export default function AdminPage() {
                     evidenceFileUrl: req.evidenceFileUrl,
                     createdAt: req.createdAt,
                     activityDate: req.activityDate,
-                    users: [req.user],
+                    status: req.status,
+                    rejectedReason: req.rejectedReason,
+                    users: req.user ? [req.user] : [],
                     requests: [req]
                   });
                 }
@@ -408,7 +361,7 @@ export default function AdminPage() {
                   const uid = req.user?.id;
                   if (!uid) continue;
                   if (!grouped[uid]) {
-                    grouped[uid] = { user: req.user, requests: [] };
+                    grouped[uid] = { user: req.user!, requests: [] };
                   }
                   grouped[uid].requests.push(req);
                 }
@@ -481,16 +434,27 @@ export default function AdminPage() {
                                   </div>
                                   <span className="request-date">활동일: {formatDateOnly(req.activityDate || req.createdAt)}</span>
                                 </div>
-                                <p className="user-group-item-desc" style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap', margin: '0 0 var(--space-sm) 0' }}>
-                                  {expanded.has(req.id) || req.description.length <= 120
-                                    ? req.description
-                                    : `${req.description.slice(0, 120)}…`}
-                                  {req.description.length > 120 && (
-                                    <button className="btn-text" onClick={() => toggleExpand(req.id)} style={{ marginLeft: '4px' }}>
-                                      {expanded.has(req.id) ? '접기' : '더보기'}
-                                    </button>
-                                  )}
-                                </p>
+                                 <p className="user-group-item-desc" style={{
+                                   margin: '0 0 var(--space-sm) 0',
+                                   ...(!expanded.has(req.id) ? {
+                                     display: '-webkit-box',
+                                     WebkitLineClamp: 1,
+                                     WebkitBoxOrient: 'vertical',
+                                     overflow: 'hidden',
+                                     textOverflow: 'ellipsis',
+                                     whiteSpace: 'pre-wrap'
+                                   } : {
+                                     whiteSpace: 'pre-wrap',
+                                     wordBreak: 'break-all'
+                                   })
+                                 }}>
+                                   {req.description}
+                                 </p>
+                                 {req.description.length > 40 && (
+                                   <button className="btn-text" onClick={() => toggleExpand(req.id)} style={{ color: '#b09a5c', fontWeight: 600, fontSize: '0.8rem', marginBottom: 'var(--space-sm)', display: 'inline-block' }}>
+                                     {expanded.has(req.id) ? '간략히 보기' : '자세히 보기'}
+                                   </button>
+                                 )}
                                 {req.rejectedReason && (
                                   <p className="user-group-item-reason">반려 사유: {req.rejectedReason}</p>
                                 )}
@@ -593,7 +557,7 @@ export default function AdminPage() {
             <div className="modal-body">
               <div className="modal-info">
                 <p>
-                  <strong>{deleteRequest.user.name}</strong>님의 <strong>{deleteRequest.category?.categoryName}</strong> 활동 내역을 정말로 삭제하시겠습니까?
+                  <strong>{deleteRequest.user?.name}</strong>님의 <strong>{deleteRequest.category?.categoryName}</strong> 활동 내역을 정말로 삭제하시겠습니까?
                 </p>
                 <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
                   ⚠️ 삭제 후에는 복구할 수 없습니다.

@@ -1,15 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
+import type { GroupedRequest, User } from '@/types';
 
 interface AdminRequestCardProps {
-  group: any; // GroupedRequest
+  group: GroupedRequest;
   actionLoading: number | null;
   expanded: Set<number>;
   toggleExpand: (id: number) => void;
   expandedUsersList: Set<string>;
   toggleUsersList: (id: string) => void;
-  handleApprove: (group: any) => void;
-  setRejectModal: (group: any) => void;
+  handleApprove: (group: GroupedRequest) => void;
+  setRejectModal: (group: GroupedRequest) => void;
   setRejectReason: (reason: string) => void;
   formatDateOnly: (dateStr: string) => string;
 }
@@ -26,7 +26,8 @@ export default function AdminRequestCard({
   setRejectReason,
   formatDateOnly
 }: AdminRequestCardProps) {
-  const isThisLoading = group.requests.some((r: any) => actionLoading === r.id);
+  const isThisLoading = group.requests.some((r) => actionLoading === r.id);
+
 
   return (
     <div key={group.id} className="admin-request-card" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--glass-radius)', padding: 'var(--space-lg)' }}>
@@ -50,7 +51,7 @@ export default function AdminRequestCard({
               </div>
               {expandedUsersList.has(group.id) && (
                 <div className="bulk-users-expanded-list" style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.04)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', width: '100%' }}>
-                  {group.users.map((u: any) => (
+                  {group.users.map((u: User) => (
                     <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
                       <span style={{ fontWeight: 600 }}>{u.name}</span>
                     </div>
@@ -87,7 +88,7 @@ export default function AdminRequestCard({
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'normal'
+            whiteSpace: 'pre-wrap'
           } : {
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-all'
@@ -95,7 +96,7 @@ export default function AdminRequestCard({
         }}>
           {group.description}
         </p>
-        {group.description.length > 60 && (
+        {group.description.length > 40 && (
           <button className="btn-text" onClick={() => toggleExpand(group.requests[0].id)} style={{ color: '#b09a5c', fontWeight: 600, marginTop: '4px' }}>
             {expanded.has(group.requests[0].id) ? '간략히 보기' : '자세히 보기'}
           </button>

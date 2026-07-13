@@ -99,8 +99,7 @@ export async function PUT(
 
     if (!isOwner && !isCreator && !isAdmin) {
       return NextResponse.json(
-        { error: 'You can only edit your own requests' },
-        { status: 403 },
+        { error: '본인의 신청만 수정할 수 있습니다.' },        { status: 403 },
       );
     }
 
@@ -387,19 +386,10 @@ export async function DELETE(
     const isRequestOwner = existingRequest.userId === Number(session!.user.id);
     const isRequestCreator = existingRequest.createdById === Number(session!.user.id);
 
-    console.log('[DEBUG DELETE GUARD]', {
-      requestId,
-      userId: existingRequest.userId,
-      createdById: existingRequest.createdById,
-      sessionUserId: Number(session!.user.id),
-      isRequestOwner,
-      isRequestCreator,
-      isAdmin
-    });
 
     if (!isAdmin && !isRequestOwner && !isRequestCreator) {
       return NextResponse.json(
-        { error: 'You can only delete your own requests' },
+        { error: '본인의 신청만 삭제할 수 있습니다.' },
         { status: 403 },
       );
     }

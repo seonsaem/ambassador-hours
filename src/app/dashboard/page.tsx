@@ -9,56 +9,8 @@ import MetricCard from '@/components/MetricCard';
 import Modal from '@/components/Modal';
 import CustomDropdown from '@/components/CustomDropdown';
 import DashboardRequestCard from '@/components/DashboardRequestCard';
-
-interface Category {
-  id: number;
-  categoryName: string;
-  activityType: 'OFFICIAL' | 'AUTONOMOUS';
-  assignedHours: number;
-  isActive: boolean;
-  department?: string | null;
-  maxHours?: number | null;
-}
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-interface Request {
-  id: number;
-  userId?: number;
-  bulkLabel?: string | null;
-  description: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  activityType: 'OFFICIAL' | 'AUTONOMOUS' | null;
-  appliedHours: number | null;
-  rejectedReason: string | null;
-  evidenceFileUrl: string | null;
-  createdAt: string;
-  activityDate?: string | null;
-  category: Category;
-  createdById?: number | null;
-  user?: User | null;
-  createdBy?: User | null;
-}
-
-interface GroupedRequest {
-  id: string;
-  bulkLabel: string | null;
-  category: Category;
-  activityType: 'OFFICIAL' | 'AUTONOMOUS' | null;
-  appliedHours: number | null;
-  description: string;
-  evidenceFileUrl: string | null;
-  createdAt: string;
-  activityDate?: string | null;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  rejectedReason: string | null;
-  users: User[];
-  requests: Request[];
-}
+import NoticeBoard from '@/components/NoticeBoard';
+import type { Category, User, Request, GroupedRequest } from '@/types';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -66,8 +18,6 @@ export default function DashboardPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-
 
   // Expanded descriptions
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
@@ -163,21 +113,21 @@ export default function DashboardPage() {
     }
   }, [status, fetchRequests]);
 
+  const currentUserId = Number(session?.user?.id);
+
   const officialHours = requests
-    .filter((r) => r.status === 'APPROVED' && r.activityType === 'OFFICIAL')
+    .filter((r) => r.status === 'APPROVED' && r.activityType === 'OFFICIAL' && r.userId === currentUserId)
     .reduce((sum, r) => sum + (r.appliedHours || 0), 0);
 
   const autonomousHours = requests
-    .filter((r) => r.status === 'APPROVED' && r.activityType === 'AUTONOMOUS')
+    .filter((r) => r.status === 'APPROVED' && r.activityType === 'AUTONOMOUS' && r.userId === currentUserId)
     .reduce((sum, r) => sum + (r.appliedHours || 0), 0);
 
   const totalHours = officialHours + autonomousHours;
 
   const displayRequests = requests.filter((req) => {
-    if (req.createdById !== undefined && req.createdById !== null) {
-      return req.createdById === Number(session?.user?.id);
-    }
-    return true;
+    const currentUserId = Number(session?.user?.id);
+    return req.createdById === currentUserId || req.userId === currentUserId;
   });
 
   const groupedRequests: GroupedRequest[] = [];
@@ -431,6 +381,9 @@ export default function DashboardPage() {
             gradient="gold"
           />
         </div>
+
+        {/* Notice Board */}
+        <NoticeBoard />
 
         {/* Request History */}
         <div className="section">

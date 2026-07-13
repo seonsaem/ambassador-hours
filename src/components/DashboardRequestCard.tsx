@@ -1,16 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import StatusBadge from '@/components/StatusBadge';
+import type { GroupedRequest, Request } from '@/types';
 
 interface DashboardRequestCardProps {
-  group: any; // GroupedRequest
+  group: GroupedRequest;
   index: number;
   canModify: boolean;
   expanded: Set<number>;
   toggleExpand: (id: number) => void;
   expandedReasons: Set<number>;
   toggleExpandReason: (id: number) => void;
-  openEditModal: (req: any) => void;
+  openEditModal: (req: Request) => void;
   handleDeleteClick: (id: number) => void;
   getActivityBadge: (type: string | null) => React.ReactNode;
   formatDate: (dateStr: string) => string;
@@ -114,7 +114,7 @@ export default function DashboardRequestCard({
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'normal'
+            whiteSpace: 'pre-wrap'
           } : {
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-all'
@@ -122,7 +122,7 @@ export default function DashboardRequestCard({
         }}>
           {group.description}
         </p>
-        {group.description.length > 60 && (
+        {group.description.length > 40 && (
           <button
             className="btn-text"
             onClick={() => toggleExpand(firstReq.id)}
