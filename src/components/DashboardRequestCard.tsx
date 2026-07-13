@@ -1,6 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import StatusBadge from '@/components/StatusBadge';
-import type { GroupedRequest, Request } from '@/types';
+import type { GroupedRequest, Request, User } from '@/types';
+
+const sortUsersByGeneration = (users: User[]): User[] => {
+  const getGeneration = (name: string): number => {
+    const match = name.match(/(\d+)기/);
+    return match ? parseInt(match[1], 10) : Infinity;
+  };
+
+  return [...users].sort((a, b) => {
+    const genA = getGeneration(a.name);
+    const genB = getGeneration(b.name);
+    if (genA !== genB) {
+      return genA - genB;
+    }
+    return a.name.localeCompare(b.name, 'ko');
+  });
+};
 
 interface DashboardRequestCardProps {
   group: GroupedRequest;
@@ -31,6 +47,7 @@ export default function DashboardRequestCard({
 }: DashboardRequestCardProps) {
   const firstReq = group.requests[0];
   const key = group.id;
+  const [usersExpanded, setUsersExpanded] = useState(false);
 
   return (
     <div
@@ -81,22 +98,44 @@ export default function DashboardRequestCard({
         </div>
         
         {group.bulkLabel && (
-          <div style={{ 
-            fontSize: '0.85rem', 
-            color: 'var(--text-secondary)', 
-            background: 'rgba(255, 255, 255, 0.03)',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginTop: '0.25rem'
-          }}>
-            <span style={{ opacity: 0.7 }}>👥 신청 인원:</span> 
-            <span>
-              {group.users[0]?.name || '로딩중…'}
-              {group.users.length > 1 ? ` 외 ${group.users.length - 1}명` : ''}
-            </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%', marginTop: '0.25rem' }}>
+            <div style={{ 
+              fontSize: '0.85rem', 
+              color: 'var(--text-secondary)', 
+              background: 'rgba(255, 255, 255, 0.03)',
+              padding: '0.5rem 0.75rem',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.5rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ opacity: 0.7 }}>👥 신청 인원:</span> 
+                <span>
+                  {group.users[0]?.name || '로딩중…'}
+                  {group.users.length > 1 ? ` 외 ${group.users.length - 1}명` : ''}
+                </span>
+              </div>
+              {group.users.length > 0 && (
+                <button
+                  className="btn-text"
+                  onClick={() => setUsersExpanded(!usersExpanded)}
+                  style={{ fontSize: '0.8rem', fontWeight: 600, color: '#b09a5c', padding: '0 4px', cursor: 'pointer', background: 'none', border: 'none' }}
+                >
+                  {usersExpanded ? '접기' : '명단 보기'}
+                </button>
+              )}
+            </div>
+            {usersExpanded && (
+              <div className="bulk-users-expanded-list" style={{ marginTop: '0.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.02)', padding: '0.5rem', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.05)', width: '100%' }}>
+                {sortUsersByGeneration(group.users).map((u: User) => (
+                  <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                    <span style={{ fontWeight: 600 }}>{u.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -122,7 +161,7 @@ export default function DashboardRequestCard({
         }}>
           {group.description}
         </p>
-        {group.description.length > 40 && (
+        {(group.description.length > 40 || group.description.includes('\n')) && (
           <button
             className="btn-text"
             onClick={() => toggleExpand(firstReq.id)}
