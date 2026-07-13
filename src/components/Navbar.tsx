@@ -284,7 +284,8 @@ export default function Navbar() {
                 color: isSubscribed ? '#b09a5c' : 'var(--text-muted)',
                 fontSize: '0.9rem',
                 transition: 'all 200ms ease',
-                padding: 0
+                padding: 0,
+                flexShrink: 0
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.05)';
@@ -295,7 +296,20 @@ export default function Navbar() {
                 if (!isSubscribed) e.currentTarget.style.color = 'var(--text-muted)';
               }}
             >
-              {isSubscribed ? '🔔' : '🔕'}
+              {isSubscribed ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
+                  <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
+                  <path d="M18 8a6 6 0 0 0-9.33-5" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              )}
             </button>
           )}
 
@@ -381,11 +395,13 @@ export default function Navbar() {
               borderRadius: '50%',
               width: '36px',
               height: '36px',
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               position: 'relative',
-              zIndex: 1001
+              zIndex: 1001,
+              flexShrink: 0
             }}
           >
             <div 
@@ -489,7 +505,28 @@ export default function Navbar() {
             }}
           >
             <span>푸시 알림 수신 설정</span>
-            <span>{isSubscribed ? '🔔 켜짐' : '🔕 꺼짐'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {isSubscribed ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                  </svg>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>켜짐</span>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
+                    <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
+                    <path d="M18 8a6 6 0 0 0-9.33-5" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>꺼짐</span>
+                </>
+              )}
+            </div>
           </button>
         )}
 
