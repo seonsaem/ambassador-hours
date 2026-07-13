@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAdmin } from '@/lib/guards';
 import { Prisma } from '@prisma/client';
+import { DEPARTMENTS } from '@/lib/constants';
 
 export async function PUT(
   request: NextRequest,
@@ -44,7 +45,7 @@ export async function PUT(
     }
 
     // Validate department if provided
-    if (department && !['미디어홍보부', '전공체험부', '전략기획부', '임원진/부장', '신입기수'].includes(department)) {
+    if (department && !(DEPARTMENTS as readonly string[]).includes(department)) {
       return NextResponse.json(
         { error: 'Invalid department' },
         { status: 400 },

@@ -2,18 +2,27 @@ import { auth } from './auth';
 import { NextResponse } from 'next/server';
 import prisma from './prisma';
 import { Prisma } from '@prisma/client';
+import { Session } from 'next-auth';
 
 interface UserSelectFields {
   status: boolean;
   role?: boolean;
 }
 
-interface DbUserResult {
+export interface DbUserResult {
   status: string;
   role?: string;
 }
 
-async function validateUser(selectFields: UserSelectFields) {
+export type AuthResult =
+  | { error: NextResponse; session: null; dbUser: null }
+  | { error: null; session: Session; dbUser: DbUserResult };
+
+export type AdminResult =
+  | { error: NextResponse; session: null }
+  | { error: null; session: Session };
+
+async function validateUser(selectFields: UserSelectFields): Promise<AuthResult> {
   const session = await auth();
   if (!session?.user) {
     return {
@@ -39,12 +48,11 @@ async function validateUser(selectFields: UserSelectFields) {
   return { error: null, session, dbUser };
 }
 
-export async function requireAuth() {
-  const { error, session, dbUser } = await validateUser({ status: true, role: true });
-  return { error, session, dbUser };
+export async function requireAuth(): Promise<AuthResult> {
+  return validateUser({ status: true, role: true });
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<AdminResult> {
   const { error, session, dbUser } = await validateUser({ status: true, role: true });
   if (error) return { error, session: null };
 
@@ -57,3 +65,4 @@ export async function requireAdmin() {
 
   return { error: null, session };
 }
+

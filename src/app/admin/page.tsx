@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import AdminRequestCard from '@/components/AdminRequestCard';
-import DeleteConfirmModal from '@/components/DeleteConfirmModal';
+import DeleteVerificationModal from '@/components/DeleteVerificationModal';
 import RejectModal from '@/components/RejectModal';
 import AdminGroupBody from '@/components/AdminGroupBody';
 import type { User, Category, Request, GroupedRequest } from '@/types';
@@ -161,7 +161,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleConfirmDelete = async (id: number) => {
+  const handleDeleteVerification = async (id: number) => {
     setActionLoading(id);
     setError('');
 
@@ -435,18 +435,18 @@ export default function AdminPage() {
       <RejectModal
         isOpen={!!rejectModal}
         onClose={() => setRejectModal(null)}
-        onConfirm={handleReject}
+        onVerify={handleReject}
         isLoading={rejectModal ? rejectModal.requests.some((r) => actionLoading === r.id) : false}
         groupedRequest={rejectModal}
         rejectReason={rejectReason}
         setRejectReason={setRejectReason}
       />
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal
+      {/* Delete Verification Modal */}
+      <DeleteVerificationModal
         isOpen={!!deleteRequest}
         onClose={() => setDeleteRequest(null)}
-        onConfirm={() => deleteRequest && handleConfirmDelete(deleteRequest.id)}
+        onVerify={() => deleteRequest && handleDeleteVerification(deleteRequest.id)}
         isLoading={actionLoading === (deleteRequest?.id || null)}
         userName={deleteRequest?.user?.name}
         categoryName={deleteRequest?.category?.categoryName}

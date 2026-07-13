@@ -8,8 +8,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { error, session } = await requireAdmin();
-    if (error) return error;
+    const adminResult = await requireAdmin();
+    if (adminResult.error) return adminResult.error;
+    const { session } = adminResult;
 
     const { id } = await params;
     const userId = Number(id);
@@ -65,7 +66,7 @@ export async function PUT(
       }
       
       // Prevent an admin from downgrading themselves
-      if (role === 'USER' && user.id === Number(session!.user.id)) {
+      if (role === 'USER' && user.id === Number(session.user.id)) {
         return NextResponse.json(
           { error: 'You cannot downgrade your own role' },
           { status: 400 },
@@ -102,8 +103,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { error, session } = await requireAdmin();
-    if (error) return error;
+    const adminResult = await requireAdmin();
+    if (adminResult.error) return adminResult.error;
+    const { session } = adminResult;
 
     const { id } = await params;
     const userId = Number(id);
@@ -127,7 +129,7 @@ export async function DELETE(
     }
 
     // Prevent an admin from deleting themselves
-    if (user.id === Number(session!.user.id)) {
+    if (user.id === Number(session.user.id)) {
       return NextResponse.json(
         { error: 'You cannot delete your own account' },
         { status: 400 },

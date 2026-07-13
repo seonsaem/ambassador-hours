@@ -29,8 +29,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { error, session } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session } = authResult;
 
     const body = await request.json();
     const { title, content, isPinned } = body;
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
         title: title.trim(),
         content: content.trim(),
         isPinned: isPinned === true,
-        authorId: Number(session!.user.id),
+        authorId: Number(session.user.id),
       },
       include: {
         author: { select: { id: true, name: true, email: true } },

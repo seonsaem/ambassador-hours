@@ -4,8 +4,9 @@ import { requireAuth } from '@/lib/guards';
 
 export async function POST(request: NextRequest) {
   try {
-    const { error, session } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session } = authResult;
 
     const body = await request.json();
     const { categoryId, description, userIds, bulkLabel, evidenceFileUrl, activityDate } = body;
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
             bulkLabel: label,
             evidenceFileUrl: evidenceFileUrl || null,
             activityDate: activityDate ? new Date(activityDate) : new Date(),
-            createdById: Number(session!.user.id),
+            createdById: Number(session.user.id),
           },
         }),
       ),

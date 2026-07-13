@@ -1,22 +1,22 @@
 import React from 'react';
 
-interface DeleteConfirmModalProps {
+interface DeleteVerificationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onVerify: () => void;
   isLoading: boolean;
   userName?: string;
   categoryName?: string;
 }
 
-export default function DeleteConfirmModal({
+export default function DeleteVerificationModal({
   isOpen,
   onClose,
-  onConfirm,
+  onVerify,
   isLoading,
   userName,
   categoryName
-}: DeleteConfirmModalProps) {
+}: DeleteVerificationModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -52,7 +52,7 @@ export default function DeleteConfirmModal({
           </button>
           <button
             className="btn btn-danger"
-            onClick={onConfirm}
+            onClick={onVerify}
             disabled={isLoading}
           >
             {isLoading ? (

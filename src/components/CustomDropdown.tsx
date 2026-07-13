@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { DEPARTMENTS } from '@/lib/constants';
 
 interface Category {
   id: number;
@@ -44,7 +45,7 @@ export default function CustomDropdown({
   const officialCategories = categories.filter((c) => c.activityType === 'OFFICIAL');
   const autonomousCategories = categories.filter((c) => c.activityType === 'AUTONOMOUS');
   
-  const departmentsOrder = ['기타 자율', '미디어홍보부', '전공체험부', '전략기획부', '임원진/부장', '신입기수'];
+  const departmentsOrder = ['기타 자율', ...DEPARTMENTS];
   
   const groupedAutonomous: { [key: string]: Category[] } = {};
   autonomousCategories.forEach((cat) => {

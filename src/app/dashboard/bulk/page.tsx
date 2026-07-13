@@ -44,8 +44,8 @@ export default function BulkCreatePage() {
   const [fileName, setFileName] = useState('');
   const [dragOver, setDragOver] = useState(false);
 
-  // Confirm modal
-  const [confirmModal, setConfirmModal] = useState(false);
+  // Verification modal
+  const [verificationModal, setVerificationModal] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -137,7 +137,7 @@ export default function BulkCreatePage() {
   };
 
   const handleSubmit = async () => {
-    setConfirmModal(false);
+    setVerificationModal(false);
     setSubmitting(true);
     setError('');
     setSuccess('');
@@ -519,7 +519,7 @@ export default function BulkCreatePage() {
                 </button>
                 <button
                   className="btn btn-primary"
-                  onClick={() => setConfirmModal(true)}
+                  onClick={() => setVerificationModal(true)}
                   disabled={!canSubmit}
                   style={{ height: '40px', padding: '0 var(--space-lg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}
                 >
@@ -538,11 +538,11 @@ export default function BulkCreatePage() {
         </div>
       </div>
 
-      {/* Confirm Modal */}
-      {confirmModal && (
+      {/* Verification Modal */}
+      {verificationModal && (
         <div 
           className="modal-overlay" 
-          onClick={() => setConfirmModal(false)}
+          onClick={() => setVerificationModal(false)}
           style={{
             position: 'fixed',
             inset: 0,
@@ -592,7 +592,7 @@ export default function BulkCreatePage() {
                 <h3 className="modal-title" style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>일괄 신청 확인</h3>
                 <button 
                   className="modal-close" 
-                  onClick={() => setConfirmModal(false)} 
+                  onClick={() => setVerificationModal(false)} 
                   aria-label="모달 닫기"
                   style={{ background: 'transparent', border: 0, color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem' }}
                 >
@@ -644,7 +644,7 @@ export default function BulkCreatePage() {
               >
                 <button
                   className="btn btn-outline"
-                  onClick={() => setConfirmModal(false)}
+                  onClick={() => setVerificationModal(false)}
                   style={{ height: '36px', padding: '0 var(--space-md)', fontSize: '0.8rem' }}
                 >
                   취소

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth, requireAdmin } from '@/lib/guards';
+import { DEPARTMENTS } from '@/lib/constants';
 
 export async function GET(request: NextRequest) {
   try {
-    const { error } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
 
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('active') === 'true';
@@ -27,8 +28,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { error } = await requireAdmin();
-    if (error) return error;
+    const adminResult = await requireAdmin();
+    if (adminResult.error) return adminResult.error;
 
     const body = await request.json();
     const { categoryName, activityType, assignedHours, department, maxHours } = body;
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (department && !['미디어홍보부', '전공체험부', '전략기획부', '임원진/부장', '신입기수'].includes(department)) {
+    if (department && !(DEPARTMENTS as readonly string[]).includes(department)) {
       return NextResponse.json(
         { error: 'Invalid department' },
         { status: 400 },

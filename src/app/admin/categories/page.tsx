@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import { DEPARTMENTS as SHARED_DEPARTMENTS, Department } from '@/lib/constants';
 
 interface Category {
   id: number;
@@ -15,13 +16,9 @@ interface Category {
   maxHours?: number | null;
 }
 
-const DEPARTMENTS = [
+const DEPARTMENT_OPTIONS = [
   { value: '', label: '부서 없음' },
-  { value: '미디어홍보부', label: '미디어홍보부' },
-  { value: '전공체험부', label: '전공체험부' },
-  { value: '전략기획부', label: '전략기획부' },
-  { value: '임원진/부장', label: '임원진/부장' },
-  { value: '신입기수', label: '신입기수' }
+  ...SHARED_DEPARTMENTS.map(dept => ({ value: dept, label: dept }))
 ];
 
 export default function CategoriesPage() {
@@ -49,7 +46,7 @@ export default function CategoriesPage() {
   const [editDepartment, setEditDepartment] = useState<string>('');
   const [isEditDeptOpen, setIsEditDeptOpen] = useState(false);
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
-  type FilterType = 'ALL' | 'OFFICIAL' | '기타 자율' | '미디어홍보부' | '전공체험부' | '전략기획부' | '임원진/부장' | '신입기수';
+  type FilterType = 'ALL' | 'OFFICIAL' | '기타 자율' | Department;
   const [listFilter, setListFilter] = useState<FilterType>('ALL');
 
   useEffect(() => {
@@ -187,7 +184,7 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleConfirmDeleteCategory = async (catId: number) => {
+  const handleDeleteCategoryVerification = async (catId: number) => {
     setActionLoading(true);
     setError('');
 
@@ -345,7 +342,7 @@ export default function CategoriesPage() {
                         textAlign: 'left'
                       }}
                     >
-                      <span>{DEPARTMENTS.find(d => d.value === newDepartment)?.label || '부서 없음'}</span>
+                      <span>{DEPARTMENT_OPTIONS.find(d => d.value === newDepartment)?.label || '부서 없음'}</span>
                       <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>{isNewDeptOpen ? '▲' : '▼'}</span>
                     </button>
 
@@ -372,7 +369,7 @@ export default function CategoriesPage() {
                             padding: '4px'
                           }}
                         >
-                          {DEPARTMENTS.map((dept) => {
+                          {DEPARTMENT_OPTIONS.map((dept) => {
                             const isSelected = newDepartment === dept.value;
                             return (
                               <button
@@ -492,7 +489,7 @@ export default function CategoriesPage() {
                     gap: '2px'
                   }}
                 >
-                  {(['ALL', 'OFFICIAL', '기타 자율', '미디어홍보부', '전공체험부', '전략기획부', '임원진/부장', '신입기수'] as const).map((filter) => (
+                  {(['ALL', 'OFFICIAL', '기타 자율', ...SHARED_DEPARTMENTS] as const).map((filter) => (
                     <button
                       key={filter}
                       type="button"
@@ -648,7 +645,7 @@ export default function CategoriesPage() {
                                 textAlign: 'left'
                               }}
                             >
-                              <span>{DEPARTMENTS.find(d => d.value === editDepartment)?.label || '부서 없음'}</span>
+                              <span>{DEPARTMENT_OPTIONS.find(d => d.value === editDepartment)?.label || '부서 없음'}</span>
                               <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>{isEditDeptOpen ? '▲' : '▼'}</span>
                             </button>
 
@@ -675,7 +672,7 @@ export default function CategoriesPage() {
                                     padding: '4px'
                                   }}
                                 >
-                                  {DEPARTMENTS.map((dept) => {
+                                  {DEPARTMENT_OPTIONS.map((dept) => {
                                     const isSelected = editDepartment === dept.value;
                                     return (
                                       <button
@@ -817,7 +814,7 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* Delete Category Confirmation Modal */}
+      {/* Delete Category Verification Modal */}
       {deleteCategory && (
         <div className="modal-overlay" onClick={() => setDeleteCategory(null)}>
           <div className="modal glass-card" onClick={(e) => e.stopPropagation()}>
@@ -845,7 +842,7 @@ export default function CategoriesPage() {
               </button>
               <button
                 className="btn btn-danger"
-                onClick={() => handleConfirmDeleteCategory(deleteCategory.id)}
+                onClick={() => handleDeleteCategoryVerification(deleteCategory.id)}
                 disabled={actionLoading}
               >
                 {actionLoading ? (

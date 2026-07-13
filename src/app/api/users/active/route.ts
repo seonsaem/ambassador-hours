@@ -4,8 +4,8 @@ import { requireAuth } from '@/lib/guards';
 
 export async function GET() {
   try {
-    const { error } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
 
     // Return only basic info of active users (no hours/admin data)
     const users = await prisma.user.findMany({

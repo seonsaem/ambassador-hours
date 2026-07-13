@@ -9,8 +9,9 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: NextRequest) {
   try {
-    const { error, session } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session } = authResult;
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
         filename,
         mimeType: verifiedMimeType,
         data: `uploads/${filename}`,
-        uploadedById: session?.user?.id ? Number(session.user.id) : null,
+        uploadedById: Number(session.user.id),
       },
     });
 

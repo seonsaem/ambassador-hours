@@ -10,7 +10,7 @@ import Modal from '@/components/Modal';
 import CustomDropdown from '@/components/CustomDropdown';
 import DashboardRequestCard from '@/components/DashboardRequestCard';
 import NoticeBoard from '@/components/NoticeBoard';
-import DeleteConfirmModal from '@/components/DeleteConfirmModal';
+import DeleteVerificationModal from '@/components/DeleteVerificationModal';
 import type { Category, User, Request, GroupedRequest } from '@/types';
 
 export default function DashboardPage() {
@@ -280,7 +280,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleConfirmDelete = async (id: number) => {
+  const handleDeleteVerification = async (id: number) => {
     setDeleteLoading(true);
     setError('');
 
@@ -665,11 +665,11 @@ export default function DashboardPage() {
         )}
       </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal
+      {/* Delete Verification Modal */}
+      <DeleteVerificationModal
         isOpen={!!deleteRequest}
         onClose={() => setDeleteRequest(null)}
-        onConfirm={() => deleteRequest && handleConfirmDelete(deleteRequest.id)}
+        onVerify={() => deleteRequest && handleDeleteVerification(deleteRequest.id)}
         isLoading={deleteLoading}
         userName={deleteRequest?.user?.name}
         categoryName={deleteRequest?.category?.categoryName}

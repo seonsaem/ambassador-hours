@@ -8,8 +8,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { error, session, dbUser } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session, dbUser } = authResult;
 
     const { id } = await params;
     const requestId = Number(id);
@@ -34,8 +35,8 @@ export async function GET(
     }
 
     // GUARD: Only the owner or admin can view
-    const isAdmin = dbUser?.role === 'ADMIN';
-    if (!isAdmin && activityRequest.userId !== Number(session!.user.id)) {
+    const isAdmin = dbUser.role === 'ADMIN';
+    if (!isAdmin && activityRequest.userId !== Number(session.user.id)) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 },
@@ -57,8 +58,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { error, session } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session } = authResult;
 
     const { id } = await params;
     const requestId = Number(id);
@@ -90,10 +92,10 @@ export async function PUT(
     }
 
     // GUARD: Only the owner, creator, or admin can resubmit
-    const isOwner = existingRequest.userId === Number(session!.user.id);
-    const isCreator = existingRequest.createdById === Number(session!.user.id);
+    const isOwner = existingRequest.userId === Number(session.user.id);
+    const isCreator = existingRequest.createdById === Number(session.user.id);
     const dbUser = await prisma.user.findUnique({
-      where: { id: Number(session!.user.id) },
+      where: { id: Number(session.user.id) },
     });
     const isAdmin = dbUser?.role === 'ADMIN';
 
@@ -188,7 +190,7 @@ export async function PUT(
         : [existingRequest];
 
       const dbUser = await prisma.user.findUnique({
-        where: { id: Number(session!.user.id) },
+        where: { id: Number(session.user.id) },
       });
       const isAdmin = dbUser?.role === 'ADMIN';
 
@@ -201,7 +203,7 @@ export async function PUT(
         );
       }
 
-      const isOwner = existingBulkRequests.every(r => r.createdById === Number(session!.user.id) || r.userId === Number(session!.user.id));
+      const isOwner = existingBulkRequests.every(r => r.createdById === Number(session.user.id) || r.userId === Number(session.user.id));
       if (!isAdmin && !isOwner) {
         return NextResponse.json(
           { error: 'You are not authorized to edit this request' },
@@ -295,7 +297,7 @@ export async function PUT(
               activityDate: finalActivityDate,
               bulkLabel: newBulkLabel,
               status: 'PENDING',
-              createdById: Number(session!.user.id),
+              createdById: Number(session.user.id),
             },
           });
         }
@@ -331,8 +333,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { error, session, dbUser } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session, dbUser } = authResult;
 
     const { id } = await params;
     const requestId = Number(id);
@@ -356,7 +359,7 @@ export async function DELETE(
     }
 
     // Check if user is admin
-    const isAdmin = dbUser?.role === 'ADMIN';
+    const isAdmin = dbUser.role === 'ADMIN';
 
     // GUARD: Approved requests are immutable for normal users
     if (!isAdmin && existingRequest.status === 'APPROVED') {
@@ -383,8 +386,8 @@ export async function DELETE(
     }
 
     // GUARD: Only the owner, creator or admin can delete
-    const isRequestOwner = existingRequest.userId === Number(session!.user.id);
-    const isRequestCreator = existingRequest.createdById === Number(session!.user.id);
+    const isRequestOwner = existingRequest.userId === Number(session.user.id);
+    const isRequestCreator = existingRequest.createdById === Number(session.user.id);
 
 
     if (!isAdmin && !isRequestOwner && !isRequestCreator) {

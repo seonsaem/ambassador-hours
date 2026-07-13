@@ -4,7 +4,7 @@ import type { GroupedRequest } from '@/types';
 interface RejectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onVerify: () => void;
   isLoading: boolean;
   groupedRequest: GroupedRequest | null;
   rejectReason: string;
@@ -14,7 +14,7 @@ interface RejectModalProps {
 export default function RejectModal({
   isOpen,
   onClose,
-  onConfirm,
+  onVerify,
   isLoading,
   groupedRequest,
   rejectReason,
@@ -78,7 +78,7 @@ export default function RejectModal({
           </button>
           <button
             className="btn btn-danger"
-            onClick={onConfirm}
+            onClick={onVerify}
             disabled={!rejectReason.trim() || isLoading}
           >
             {isLoading ? (

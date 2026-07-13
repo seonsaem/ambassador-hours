@@ -9,7 +9,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [passwordVerification, setPasswordVerification] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -17,7 +17,7 @@ export default function SignupPage() {
     e.preventDefault();
     setError('');
 
-    if (password !== passwordConfirm) {
+    if (password !== passwordVerification) {
       setError('비밀번호가 일치하지 않습니다.');
       return;
     }
@@ -121,20 +121,20 @@ export default function SignupPage() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="passwordConfirm" className="form-label">비밀번호 확인</label>
+            <label htmlFor="passwordVerification" className="form-label">비밀번호 확인</label>
             <input
-              id="passwordConfirm"
+              id="passwordVerification"
               type="password"
               className="form-input"
               placeholder="••••••••"
-              value={passwordConfirm}
-              onChange={(e) => setPasswordConfirm(e.target.value)}
+              value={passwordVerification}
+              onChange={(e) => setPasswordVerification(e.target.value)}
               required
               minLength={8}
               autoComplete="new-password"
               disabled={loading}
             />
-            {passwordConfirm && password !== passwordConfirm && (
+            {passwordVerification && password !== passwordVerification && (
               <span className="form-hint form-hint-error" role="alert" aria-live="polite">비밀번호가 일치하지 않습니다</span>
             )}
           </div>
@@ -142,7 +142,7 @@ export default function SignupPage() {
           <button
             type="submit"
             className="btn btn-primary btn-full btn-lg mt-md"
-            disabled={loading || (!!passwordConfirm && password !== passwordConfirm)}
+            disabled={loading || (!!passwordVerification && password !== passwordVerification)}
           >
             {loading ? (
               <span className="btn-loading">

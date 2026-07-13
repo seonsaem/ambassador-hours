@@ -4,18 +4,19 @@ import { requireAuth } from '@/lib/guards';
 
 export async function GET() {
   try {
-    const { error, session, dbUser } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session, dbUser } = authResult;
 
-    const isAdmin = dbUser?.role === 'ADMIN';
+    const isAdmin = dbUser.role === 'ADMIN';
 
     const requests = await prisma.activityRequest.findMany({
       where: isAdmin
         ? {}
         : {
             OR: [
-              { userId: Number(session!.user.id) },
-              { createdById: Number(session!.user.id) },
+              { userId: Number(session.user.id) },
+              { createdById: Number(session.user.id) },
             ],
           },
       include: {
@@ -38,8 +39,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { error, session } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session } = authResult;
 
     const body = await request.json();
     const { categoryId, description, evidenceFileUrl, bulkLabel, activityDate } = body;
@@ -118,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     const created = await prisma.activityRequest.create({
       data: {
-        userId: Number(session!.user.id),
+        userId: Number(session.user.id),
         categoryId,
         activityType,
         appliedHours,
@@ -127,7 +129,7 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
         bulkLabel: bulkLabel?.trim() || null,
         activityDate: activityDate ? new Date(activityDate) : new Date(),
-        createdById: Number(session!.user.id),
+        createdById: Number(session.user.id),
       },
       include: { category: true },
     });

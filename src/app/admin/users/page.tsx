@@ -46,7 +46,7 @@ export default function UsersPage() {
 
   // Bulk delete state
   const [bulkDeleteModal, setBulkDeleteModal] = useState(false);
-  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState('');
+  const [bulkDeleteVerification, setBulkDeleteVerification] = useState('');
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
 
   useEffect(() => {
@@ -140,8 +140,8 @@ export default function UsersPage() {
   };
 
   const handleRoleChange = async (userId: number, newRole: 'ADMIN' | 'USER') => {
-    if (newRole === 'USER' && !confirm('정말 관리자 권한을 회수하시겠습니까?')) return;
-    if (newRole === 'ADMIN' && !confirm('이 사용자에게 관리자 권한을 부여하시겠습니까?')) return;
+    if (newRole === 'USER' && !window.confirm('정말 관리자 권한을 회수하시겠습니까?')) return;
+    if (newRole === 'ADMIN' && !window.confirm('이 사용자에게 관리자 권한을 부여하시겠습니까?')) return;
     
     setActionLoading(userId);
     setError('');
@@ -167,7 +167,7 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (userId: number) => {
-    if (!confirm('정말로 이 사용자의 계정을 완전히 삭제하시겠습니까?\n이 사용자의 모든 활동 신청 내역도 함께 영구 삭제됩니다.')) return;
+    if (!window.confirm('정말로 이 사용자의 계정을 완전히 삭제하시겠습니까?\n이 사용자의 모든 활동 신청 내역도 함께 영구 삭제됩니다.')) return;
     
     setActionLoading(userId);
     setError('');
@@ -248,7 +248,7 @@ export default function UsersPage() {
   };
 
   const handleBulkDelete = async () => {
-    if (bulkDeleteConfirm !== '전체 삭제') return;
+    if (bulkDeleteVerification !== '전체 삭제') return;
     setBulkDeleteLoading(true);
     setError('');
 
@@ -260,7 +260,7 @@ export default function UsersPage() {
       }
       const data = await res.json();
       setBulkDeleteModal(false);
-      setBulkDeleteConfirm('');
+      setBulkDeleteVerification('');
       alert(`${data.deletedCount}건의 기록이 삭제되었습니다.`);
       await fetchUsers(); // Refresh user data to reflect deleted hours
     } catch (err: unknown) {
@@ -319,7 +319,7 @@ export default function UsersPage() {
           )}
             <button
               className="btn btn-outline-danger"
-              onClick={() => { setBulkDeleteModal(true); setBulkDeleteConfirm(''); }}
+              onClick={() => { setBulkDeleteModal(true); setBulkDeleteVerification(''); }}
             >
               🗑️ 전체 삭제
             </button>
@@ -828,7 +828,7 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Bulk Delete Confirmation Modal */}
+      {/* Bulk Delete Verification Modal */}
       {bulkDeleteModal && (
         <div className="modal-overlay" onClick={() => setBulkDeleteModal(false)}>
           <div className="modal glass-card" onClick={(e) => e.stopPropagation()}>
@@ -842,16 +842,16 @@ export default function UsersPage() {
                 이 작업은 되돌릴 수 없습니다. 모든 사용자의 활동 기록이 영구적으로 삭제됩니다.
               </div>
               <div className="form-group">
-                <label htmlFor="bulkDeleteConfirm" className="form-label">
+                <label htmlFor="bulkDeleteVerification" className="form-label">
                   확인하려면 아래에 <strong>전체 삭제</strong>를 입력하세요
                 </label>
                 <input
                   type="text"
-                  id="bulkDeleteConfirm"
-                  name="bulkDeleteConfirm"
+                  id="bulkDeleteVerification"
+                  name="bulkDeleteVerification"
                   className="form-input"
-                  value={bulkDeleteConfirm}
-                  onChange={(e) => setBulkDeleteConfirm(e.target.value)}
+                  value={bulkDeleteVerification}
+                  onChange={(e) => setBulkDeleteVerification(e.target.value)}
                   placeholder="전체 삭제"
                   autoFocus
                   autoComplete="off"
@@ -869,7 +869,7 @@ export default function UsersPage() {
               <button
                 className="btn btn-danger"
                 onClick={handleBulkDelete}
-                disabled={bulkDeleteConfirm !== '전체 삭제' || bulkDeleteLoading}
+                disabled={bulkDeleteVerification !== '전체 삭제' || bulkDeleteLoading}
               >
                 {bulkDeleteLoading ? (
                   <span className="btn-loading">

@@ -9,8 +9,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error, session } = await requireAuth();
-    if (error) return error;
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { session } = authResult;
 
     const { id: fileId } = await params;
     if (!fileId) {
@@ -26,7 +27,7 @@ export async function GET(
     }
 
     // Owner or admin verification
-    const currentUserId = Number(session!.user.id);
+    const currentUserId = Number(session.user.id);
     const dbUser = await prisma.user.findUnique({
       where: { id: currentUserId },
       select: { role: true },

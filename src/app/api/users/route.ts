@@ -4,8 +4,8 @@ import { requireAdmin } from '@/lib/guards';
 
 export async function GET() {
   try {
-    const { error } = await requireAdmin();
-    if (error) return error;
+    const adminResult = await requireAdmin();
+    if (adminResult.error) return adminResult.error;
 
     // Fetch all users with aggregated approved hours
     const users = await prisma.user.findMany({
@@ -76,8 +76,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { error } = await requireAdmin();
-    if (error) return error;
+    const adminResult = await requireAdmin();
+    if (adminResult.error) return adminResult.error;
 
     const body = await request.json();
     const { name, email } = body;
