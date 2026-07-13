@@ -408,25 +408,28 @@ export default function Navbar() {
               style={{
                 width: '16px',
                 height: '12px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
                 position: 'relative'
               }}
             >
               <span
                 style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
                   width: '100%',
                   height: '1.5px',
                   background: 'var(--text-primary)',
                   borderRadius: '1px',
                   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transformOrigin: 'left center',
-                  transform: mobileOpen ? 'rotate(45deg) translate(2px, 1.5px)' : 'none'
+                  transformOrigin: 'center',
+                  transform: mobileOpen ? 'translateY(5.25px) rotate(45deg)' : 'none'
                 }}
               />
               <span
                 style={{
+                  position: 'absolute',
+                  top: '5.25px',
+                  left: 0,
                   width: '100%',
                   height: '1.5px',
                   background: 'var(--text-primary)',
@@ -437,13 +440,16 @@ export default function Navbar() {
               />
               <span
                 style={{
+                  position: 'absolute',
+                  top: '10.5px',
+                  left: 0,
                   width: '100%',
                   height: '1.5px',
                   background: 'var(--text-primary)',
                   borderRadius: '1px',
                   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transformOrigin: 'left center',
-                  transform: mobileOpen ? 'rotate(-45deg) translate(2px, -1.5px)' : 'none'
+                  transformOrigin: 'center',
+                  transform: mobileOpen ? 'translateY(-5.25px) rotate(-45deg)' : 'none'
                 }}
               />
             </div>
