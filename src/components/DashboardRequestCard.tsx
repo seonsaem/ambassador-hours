@@ -39,7 +39,7 @@ export default function DashboardRequestCard({
       style={{ animationDelay: `${index * 0.05}s`, display: 'flex', flexDirection: 'column' }}
     >
       <div className="request-card-header" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.75rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+        <div className="request-card-header-top">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: 0 }}>
             <span className="request-category" style={{ 
               fontSize: '1.1rem', 
