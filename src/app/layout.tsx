@@ -5,6 +5,12 @@ import Providers from '@/components/Providers';
 export const metadata: Metadata = {
   title: '광운알리미 – 홍보대사 시간관리',
   description: '광운대학교 홍보대사 활동 시간 추적 및 관리 시스템',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: '광운알리미',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -13,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body>
         <Providers>{children}</Providers>
