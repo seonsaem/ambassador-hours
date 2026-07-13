@@ -421,8 +421,8 @@ export default function Navbar() {
                   background: 'var(--text-primary)',
                   borderRadius: '1px',
                   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transformOrigin: '1px 1px',
-                  transform: mobileOpen ? 'rotate(45deg) translate(2px, 1px)' : 'none'
+                  transformOrigin: 'left center',
+                  transform: mobileOpen ? 'rotate(45deg) translate(2px, 1.5px)' : 'none'
                 }}
               />
               <span
@@ -442,8 +442,8 @@ export default function Navbar() {
                   background: 'var(--text-primary)',
                   borderRadius: '1px',
                   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transformOrigin: '1px 11px',
-                  transform: mobileOpen ? 'rotate(-45deg) translate(2px, -1px)' : 'none'
+                  transformOrigin: 'left center',
+                  transform: mobileOpen ? 'rotate(-45deg) translate(2px, -1.5px)' : 'none'
                 }}
               />
             </div>
