@@ -133,9 +133,19 @@ export default function DashboardPage() {
 
   const totalHours = officialHours + autonomousHours;
 
+  const myBulkLabels = new Set(
+    requests
+      .filter((r) => r.userId === currentUserId || r.createdById === currentUserId)
+      .map((r) => r.bulkLabel)
+      .filter((l): l is string => Boolean(l))
+  );
+
   const displayRequests = requests.filter((req) => {
-    const currentUserId = Number(session?.user?.id);
-    return req.createdById === currentUserId || req.userId === currentUserId;
+    return (
+      req.createdById === currentUserId ||
+      req.userId === currentUserId ||
+      Boolean(req.bulkLabel && myBulkLabels.has(req.bulkLabel))
+    );
   });
 
   const groupedRequests: GroupedRequest[] = [];
@@ -661,7 +671,8 @@ export default function DashboardPage() {
                               </div>
                             </div>
 
-                            {(req.status === 'PENDING' || req.status === 'REJECTED') && (
+                            {(req.status === 'PENDING' || req.status === 'REJECTED') &&
+                              (session?.user?.role === 'ADMIN' || !req.bulkLabel || req.createdById === currentUserId) && (
                               <div style={{ display: 'flex', gap: '4px' }}>
                                 <button
                                   type="button"

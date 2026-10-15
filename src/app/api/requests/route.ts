@@ -10,15 +10,33 @@ export async function GET() {
 
     const isAdmin = dbUser.role === 'ADMIN';
 
+    const userId = Number(session.user.id);
+
+    let whereClause = {};
+    if (!isAdmin) {
+      const myBulkRows = await prisma.activityRequest.findMany({
+        where: {
+          OR: [{ userId }, { createdById: userId }],
+          bulkLabel: { not: null },
+        },
+        select: { bulkLabel: true },
+        distinct: ['bulkLabel'],
+      });
+      const myBulkLabels = myBulkRows
+        .map((r) => r.bulkLabel)
+        .filter((l): l is string => Boolean(l));
+
+      whereClause = {
+        OR: [
+          { userId },
+          { createdById: userId },
+          ...(myBulkLabels.length > 0 ? [{ bulkLabel: { in: myBulkLabels } }] : []),
+        ],
+      };
+    }
+
     const requests = await prisma.activityRequest.findMany({
-      where: isAdmin
-        ? {}
-        : {
-            OR: [
-              { userId: Number(session.user.id) },
-              { createdById: Number(session.user.id) },
-            ],
-          },
+      where: whereClause,
       include: {
         category: true,
         user: { select: { id: true, name: true, email: true } },

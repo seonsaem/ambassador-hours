@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface NoticeAuthor {
   id: number;
@@ -20,6 +21,10 @@ interface Notice {
 }
 
 export default function NoticeBoard() {
+  const { data: session } = useSession();
+  const currentUserId = Number(session?.user?.id);
+  const isAdmin = session?.user?.role === 'ADMIN';
+
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -28,12 +33,14 @@ export default function NoticeBoard() {
   const [isWriting, setIsWriting] = useState(false);
   const [writeTitle, setWriteTitle] = useState('');
   const [writeContent, setWriteContent] = useState('');
+  const [writePinned, setWritePinned] = useState(false);
   const [writeLoading, setWriteLoading] = useState(false);
 
   // Edit mode
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+  const [editPinned, setEditPinned] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
 
   // Error state
@@ -79,11 +86,12 @@ export default function NoticeBoard() {
       const res = await fetch('/api/notices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: writeTitle, content: writeContent }),
+        body: JSON.stringify({ title: writeTitle, content: writeContent, isPinned: writePinned }),
       });
       if (res.ok) {
         setWriteTitle('');
         setWriteContent('');
+        setWritePinned(false);
         setIsWriting(false);
         await fetchNotices();
       } else {
@@ -105,7 +113,7 @@ export default function NoticeBoard() {
       const res = await fetch(`/api/notices/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: editTitle, content: editContent }),
+        body: JSON.stringify({ title: editTitle, content: editContent, isPinned: editPinned }),
       });
       if (res.ok) {
         setEditingId(null);
@@ -142,6 +150,7 @@ export default function NoticeBoard() {
     setEditingId(notice.id);
     setEditTitle(notice.title);
     setEditContent(notice.content);
+    setEditPinned(notice.isPinned);
     setExpandedId(notice.id);
   };
 
@@ -223,14 +232,28 @@ export default function NoticeBoard() {
             maxLength={2000}
             disabled={writeLoading}
           />
-          <div className="notice-write-actions">
-            <span className="notice-write-charcount">
-              {writeContent.length}/2000
-            </span>
+          <div className="notice-write-actions" style={{ flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span className="notice-write-charcount">
+                {writeContent.length}/2000
+              </span>
+              {isAdmin && (
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={writePinned}
+                    onChange={(e) => setWritePinned(e.target.checked)}
+                    disabled={writeLoading}
+                    style={{ accentColor: 'var(--primary)', cursor: 'pointer' }}
+                  />
+                  상단 고정
+                </label>
+              )}
+            </div>
             <div className="notice-write-btns">
               <button
                 className="notice-action-btn notice-action-btn--cancel"
-                onClick={() => { setIsWriting(false); setWriteTitle(''); setWriteContent(''); }}
+                onClick={() => { setIsWriting(false); setWriteTitle(''); setWriteContent(''); setWritePinned(false); }}
                 disabled={writeLoading}
               >
                 취소
@@ -274,6 +297,7 @@ export default function NoticeBoard() {
           notices.map((notice, index) => {
             const isExpanded = expandedId === notice.id;
             const isEditing = editingId === notice.id;
+            const canModifyNotice = isAdmin || notice.authorId === currentUserId;
 
             return (
               <div
@@ -335,10 +359,24 @@ export default function NoticeBoard() {
                         maxLength={2000}
                         disabled={editLoading}
                       />
-                      <div className="notice-write-actions">
-                        <span className="notice-write-charcount">
-                          {editContent.length}/2000
-                        </span>
+                      <div className="notice-write-actions" style={{ flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span className="notice-write-charcount">
+                            {editContent.length}/2000
+                          </span>
+                          {isAdmin && (
+                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={editPinned}
+                                onChange={(e) => setEditPinned(e.target.checked)}
+                                disabled={editLoading}
+                                style={{ accentColor: 'var(--primary)', cursor: 'pointer' }}
+                              />
+                              상단 고정
+                            </label>
+                          )}
+                        </div>
                         <div className="notice-write-btns">
                           <button
                             className="notice-action-btn notice-action-btn--cancel"
@@ -369,28 +407,30 @@ export default function NoticeBoard() {
                           <p key={i}>{line || '\u00A0'}</p>
                         ))}
                       </div>
-                      <div className="notice-item-footer">
-                        <button
-                          className="notice-footer-btn"
-                          onClick={(e) => { e.stopPropagation(); openEdit(notice); }}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                          </svg>
-                          수정
-                        </button>
-                        <button
-                          className="notice-footer-btn notice-footer-btn--danger"
-                          onClick={(e) => { e.stopPropagation(); handleDelete(notice.id); }}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
-                          삭제
-                        </button>
-                      </div>
+                      {canModifyNotice && (
+                        <div className="notice-item-footer">
+                          <button
+                            className="notice-footer-btn"
+                            onClick={(e) => { e.stopPropagation(); openEdit(notice); }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                            수정
+                          </button>
+                          <button
+                            className="notice-footer-btn notice-footer-btn--danger"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(notice.id); }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            삭제
+                          </button>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

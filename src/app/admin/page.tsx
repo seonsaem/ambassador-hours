@@ -91,7 +91,7 @@ export default function AdminPage() {
         const isReqEtc = req.category?.assignedHours === 0;
         const body: { activityType?: 'OFFICIAL' | 'AUTONOMOUS'; appliedHours?: number } = {};
         if (isReqEtc) {
-          body.activityType = req.activityType as 'OFFICIAL' | 'AUTONOMOUS';
+          body.activityType = (req.activityType || req.category?.activityType || 'AUTONOMOUS') as 'OFFICIAL' | 'AUTONOMOUS';
           body.appliedHours = req.appliedHours || 0.5;
         }
 

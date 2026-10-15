@@ -43,6 +43,9 @@ export default function AdminRequestCard({
   formatDateOnly
 }: AdminRequestCardProps) {
   const isThisLoading = group.requests.some((r) => actionLoading === r.id);
+  const cleanBulkLabel = group.bulkLabel
+    ? group.bulkLabel.replace(/^일괄신청_/, '').replace(/_[a-z0-9]{5,}$/i, '')
+    : '';
 
   return (
     <div key={group.id} className="admin-request-card">
@@ -50,8 +53,17 @@ export default function AdminRequestCard({
         <div className="admin-request-user">
           {group.bulkLabel ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
-              <span className="badge badge-outline" style={{ alignSelf: 'flex-start', marginBottom: '2px' }}>
-                통합 신청: {group.bulkLabel?.replace('일괄신청_', '')}
+              <span
+                className="badge badge-outline"
+                style={{
+                  alignSelf: 'flex-start',
+                  marginBottom: '2px',
+                  whiteSpace: 'normal',
+                  wordBreak: 'keep-all',
+                  overflowWrap: 'break-word',
+                }}
+              >
+                통합 신청{cleanBulkLabel && !/^\d{4}-\d{2}-\d{2}$/.test(cleanBulkLabel) ? `: ${cleanBulkLabel}` : ` (${group.users.length}명)`}
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span className="admin-request-username">
@@ -87,9 +99,14 @@ export default function AdminRequestCard({
       )}
 
       <div className="admin-request-meta">
+        {group.category?.department && (
+          <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>
+            {group.category.department}
+          </span>
+        )}
         <span className="request-category">{group.category?.categoryName}</span>
-        <span className={`badge ${group.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`}>
-          {group.activityType === 'OFFICIAL' ? '공식' : '자율'}
+        <span className={`badge ${(group.activityType || group.category?.activityType) === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`}>
+          {(group.activityType || group.category?.activityType) === 'OFFICIAL' ? '공식' : '자율'}
         </span>
         <span className="badge badge-outline">
           {group.appliedHours}시간
@@ -109,6 +126,7 @@ export default function AdminRequestCard({
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
                 }
               : {
                   whiteSpace: 'pre-wrap',

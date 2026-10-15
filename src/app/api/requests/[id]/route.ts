@@ -153,12 +153,24 @@ export async function PUT(
       }
 
       updateData.categoryId = categoryId;
+      updateData.activityType = newCategory.activityType;
 
       if (newCategory.assignedHours === 0) {
-        updateData.activityType = '';
-        updateData.appliedHours = appliedHours !== undefined ? Number(appliedHours) : 0;
+        const hoursNum = appliedHours !== undefined ? Number(appliedHours) : 0;
+        if (isNaN(hoursNum) || hoursNum <= 0) {
+          return NextResponse.json(
+            { error: '가변 시간 카테고리는 시간 입력이 필요합니다.' },
+            { status: 400 },
+          );
+        }
+        if (newCategory.maxHours !== null && hoursNum > newCategory.maxHours) {
+          return NextResponse.json(
+            { error: `신청 시간이 최대 제한 시간(${newCategory.maxHours}시간)을 초과했습니다.` },
+            { status: 400 },
+          );
+        }
+        updateData.appliedHours = hoursNum;
       } else {
-        updateData.activityType = newCategory.activityType;
         updateData.appliedHours = newCategory.assignedHours;
       }
     } else if (appliedHours !== undefined) {
@@ -167,7 +179,23 @@ export async function PUT(
         where: { id: existingRequest.categoryId },
       });
       if (currentCategory && currentCategory.assignedHours === 0) {
-        updateData.appliedHours = Number(appliedHours);
+        const hoursNum = Number(appliedHours);
+        if (isNaN(hoursNum) || hoursNum <= 0) {
+          return NextResponse.json(
+            { error: '가변 시간 카테고리는 시간 입력이 필요합니다.' },
+            { status: 400 },
+          );
+        }
+        if (currentCategory.maxHours !== null && hoursNum > currentCategory.maxHours) {
+          return NextResponse.json(
+            { error: `신청 시간이 최대 제한 시간(${currentCategory.maxHours}시간)을 초과했습니다.` },
+            { status: 400 },
+          );
+        }
+        updateData.appliedHours = hoursNum;
+        if (!existingRequest.activityType) {
+          updateData.activityType = currentCategory.activityType;
+        }
       }
     }
 

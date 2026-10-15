@@ -185,6 +185,7 @@ export default function BulkCreatePage() {
 
       const data = await res.json();
       setSuccess(`${data.createdCount}명에게 활동이 신청되었습니다.${data.skippedCount > 0 ? ` (${data.skippedCount}명 건너뜀)` : ''}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       // Reset form
       setCategoryId('');
@@ -195,6 +196,7 @@ export default function BulkCreatePage() {
       setFileName('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '일괄 신청 중 오류가 발생했습니다.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSubmitting(false);
     }
@@ -406,14 +408,14 @@ export default function BulkCreatePage() {
 
           {/* Right Column: User Selection (col-span-7) */}
           <div className="card col-7">
-            <div className="flex justify-between items-center" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
+            <div className="flex justify-between items-center" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)', flexWrap: 'wrap', gap: '10px' }}>
               <div>
                 <h3 className="card-title" style={{ fontSize: '1.125rem', marginBottom: '2px' }}>
                   대상 홍보대사 선택
                 </h3>
                 <p className="text-secondary" style={{ fontSize: '0.8125rem' }}>일괄 적용할 대상 학생들을 목록에서 체크해 주세요.</p>
               </div>
-              <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
                 <span className="badge badge-outline" style={{ fontSize: '0.75rem', fontVariantNumeric: 'tabular-nums', padding: '4px 10px' }}>
                   {selectedUsers.size} / {users.length}명 선택됨
                 </span>
@@ -460,7 +462,7 @@ export default function BulkCreatePage() {
             <div className="form-actions">
               <button
                 className="btn btn-outline"
-                onClick={() => router.push('/admin')}
+                onClick={() => router.push('/dashboard')}
                 disabled={submitting}
               >
                 취소
@@ -507,9 +509,9 @@ export default function BulkCreatePage() {
             </div>
             <div className="modal-body">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>카테고리</span>
-                  <strong style={{ fontSize: '0.9375rem', color: 'var(--text-primary)' }}>{selectedCategory?.categoryName}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem', flexShrink: 0 }}>카테고리</span>
+                  <strong style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', textAlign: 'right', wordBreak: 'keep-all' }}>{selectedCategory?.categoryName}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>활동 유형</span>

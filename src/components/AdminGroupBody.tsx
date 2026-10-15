@@ -33,6 +33,11 @@ export default function AdminGroupBody({
             <div key={req.id} className="user-group-item">
               <div className="user-group-item-top">
                 <div className="user-group-item-meta">
+                  {req.category?.department && (
+                    <span className="badge badge-gold" style={{ fontSize: '0.68rem' }}>
+                      {req.category.department}
+                    </span>
+                  )}
                   <span className="request-category">{req.category?.categoryName}</span>
                   {req.activityType && (
                     <span className={`badge ${req.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`}>
@@ -57,6 +62,7 @@ export default function AdminGroupBody({
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-all',
                       }
                     : {
                         whiteSpace: 'pre-wrap',

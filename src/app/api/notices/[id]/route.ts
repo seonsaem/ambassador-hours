@@ -58,7 +58,7 @@ export async function PUT(
       data: {
         title: title.trim(),
         content: content.trim(),
-        isPinned: isAdmin ? isPinned === true : existing.isPinned,
+        isPinned: isAdmin && typeof isPinned === 'boolean' ? isPinned : existing.isPinned,
       },
       include: {
         author: { select: { id: true, name: true, email: true } },

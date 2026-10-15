@@ -50,8 +50,9 @@ export async function POST(
     });
 
     if (category?.assignedHours === 0) {
-      const body = await request.json();
-      const { activityType, appliedHours } = body;
+      const body = await request.json().catch(() => ({}));
+      const activityType = body.activityType || existingRequest.activityType || category.activityType;
+      const appliedHours = body.appliedHours ?? existingRequest.appliedHours;
 
       if (!activityType || !appliedHours) {
         return NextResponse.json(

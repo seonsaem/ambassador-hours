@@ -65,15 +65,14 @@ export default function DashboardRequestCard({
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', width: '100%', minWidth: 0 }}>
           <span
             className="request-category"
             style={{
               fontSize: '1.05rem',
               lineHeight: '1.35',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              wordBreak: 'keep-all',
+              overflowWrap: 'break-word',
               fontWeight: 700,
               display: 'block',
             }}
@@ -83,16 +82,21 @@ export default function DashboardRequestCard({
           </span>
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <StatusBadge status={group.status} />
-            {getActivityBadge(group.activityType)}
+            {getActivityBadge(group.activityType || group.category?.activityType || null)}
+            {group.category?.department && (
+              <span className="badge badge-gold" style={{ fontSize: '0.72rem' }}>
+                {group.category.department}
+              </span>
+            )}
             {group.bulkLabel && (
               <span className="badge badge-outline" style={{ fontSize: '0.72rem' }}>
-                통합 신청
+                통합 신청 ({group.users.length}명)
               </span>
             )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginTop: '0.15rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginTop: '0.15rem', flexWrap: 'wrap' }}>
           {group.bulkLabel ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span className="admin-request-username" style={{ fontSize: '0.92rem', fontWeight: 600 }}>
@@ -116,7 +120,7 @@ export default function DashboardRequestCard({
           )}
 
           {canModify && (group.status === 'PENDING' || group.status === 'REJECTED') && (
-            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexShrink: 0, marginLeft: 'auto' }}>
               <button
                 className="btn btn-outline btn-sm"
                 style={{ padding: '4px 10px', fontSize: '0.78rem' }}
@@ -162,6 +166,7 @@ export default function DashboardRequestCard({
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
                 }
               : {
                   whiteSpace: 'pre-wrap',
