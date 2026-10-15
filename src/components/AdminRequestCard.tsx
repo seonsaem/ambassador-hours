@@ -13,6 +13,7 @@ interface AdminRequestCardProps {
   setRejectReason: (reason: string) => void;
   formatDateOnly: (dateStr: string) => string;
 }
+
 const sortUsersByGeneration = (users: User[]): User[] => {
   const getGeneration = (name: string): number => {
     const match = name.match(/(\d+)기/);
@@ -43,14 +44,15 @@ export default function AdminRequestCard({
 }: AdminRequestCardProps) {
   const isThisLoading = group.requests.some((r) => actionLoading === r.id);
 
-
   return (
-    <div key={group.id} className="admin-request-card" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--glass-radius)', padding: 'var(--space-lg)' }}>
+    <div key={group.id} className="admin-request-card">
       <div className="admin-request-header">
         <div className="admin-request-user">
           {group.bulkLabel ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
-              <span className="badge badge-purple" style={{ alignSelf: 'flex-start', marginBottom: '2px' }}>통합 신청: {group.bulkLabel?.replace('일괄신청_', '')}</span>
+              <span className="badge badge-outline" style={{ alignSelf: 'flex-start', marginBottom: '2px' }}>
+                통합 신청: {group.bulkLabel?.replace('일괄신청_', '')}
+              </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span className="admin-request-username">
                   {group.createdBy?.name || sortUsersByGeneration(group.users)[0]?.name}
@@ -59,25 +61,25 @@ export default function AdminRequestCard({
                 <button
                   className="btn-text"
                   onClick={() => toggleUsersList(group.id)}
-                  style={{ fontSize: '0.8rem', fontWeight: 500 }}
+                  style={{ fontSize: '0.8rem', fontWeight: 600 }}
                 >
                   {expandedUsersList.has(group.id) ? '접기' : '명단 보기'}
                 </button>
               </div>
             </div>
           ) : (
-            <>
-              <span className="admin-request-username">{group.users[0]?.name}</span>
-            </>
+            <span className="admin-request-username">{group.users[0]?.name}</span>
           )}
         </div>
-        <span className="request-date" style={{ flexShrink: 0 }}>활동일: {formatDateOnly(group.activityDate || group.createdAt)}</span>
+        <span className="request-date" style={{ flexShrink: 0 }}>
+          활동일: {formatDateOnly(group.activityDate || group.createdAt)}
+        </span>
       </div>
 
       {group.bulkLabel && expandedUsersList.has(group.id) && (
-        <div className="bulk-users-expanded-list" style={{ marginTop: '0.75rem', marginBottom: '0.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.04)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', width: '100%' }}>
+        <div className="bulk-users-expanded-list">
           {sortUsersByGeneration(group.users).map((u: User) => (
-            <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+            <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem', background: 'var(--bg-secondary)' }}>
               <span style={{ fontWeight: 600 }}>{u.name}</span>
             </div>
           ))}
@@ -95,25 +97,33 @@ export default function AdminRequestCard({
       </div>
 
       <div className="admin-request-description">
-        <p style={{
-          margin: 0,
-          width: '100%',
-          ...(!expanded.has(group.requests[0].id) ? {
-            display: '-webkit-box',
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'pre-wrap'
-          } : {
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-all'
-          })
-        }}>
+        <p
+          style={{
+            margin: 0,
+            width: '100%',
+            ...(!expanded.has(group.requests[0].id)
+              ? {
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'pre-wrap',
+                }
+              : {
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
+                }),
+          }}
+        >
           {group.description}
         </p>
-        {(group.description.length > 40 || group.description.includes('\n')) && (
-          <button className="btn-text" onClick={() => toggleExpand(group.requests[0].id)} style={{ color: '#b09a5c', fontWeight: 600, marginTop: '4px' }}>
+        {(group.description.length > 50 || group.description.includes('\n')) && (
+          <button
+            className="btn-text"
+            onClick={() => toggleExpand(group.requests[0].id)}
+            style={{ marginTop: '4px' }}
+          >
             {expanded.has(group.requests[0].id) ? '간략히 보기' : '자세히 보기'}
           </button>
         )}
@@ -122,14 +132,17 @@ export default function AdminRequestCard({
       {group.evidenceFileUrl && (
         <div className="admin-request-evidence">
           <a href={group.evidenceFileUrl} target="_blank" rel="noopener noreferrer" className="evidence-link">
-            📎 증빙 파일 보기
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
+            증빙 파일 보기
           </a>
         </div>
       )}
 
       <div className="admin-request-actions">
         <button
-          className="btn btn-success"
+          className="btn btn-success btn-sm"
           onClick={() => handleApprove(group)}
           disabled={isThisLoading}
         >
@@ -142,8 +155,11 @@ export default function AdminRequestCard({
           )}
         </button>
         <button
-          className="btn btn-danger"
-          onClick={() => { setRejectModal(group); setRejectReason(''); }}
+          className="btn btn-outline-danger btn-sm"
+          onClick={() => {
+            setRejectModal(group);
+            setRejectReason('');
+          }}
           disabled={isThisLoading}
         >
           반려

@@ -53,65 +53,80 @@ export default function DashboardRequestCard({
     <div
       key={key}
       className={`request-card request-card-${group.status.toLowerCase()}`}
-      style={{ animationDelay: `${index * 0.05}s`, display: 'flex', flexDirection: 'column' }}
+      style={{ animationDelay: `${index * 0.04}s`, display: 'flex', flexDirection: 'column' }}
     >
-      <div className="request-card-header" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.75rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
-          <span className="request-category" style={{ 
-            fontSize: '1.1rem', 
-            lineHeight: '1.3',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            fontWeight: 700,
-            display: 'block'
-          }} title={group.category?.categoryName}>
+      <div
+        className="request-card-header"
+        style={{
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          gap: '0.65rem',
+          paddingBottom: '0.85rem',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', width: '100%' }}>
+          <span
+            className="request-category"
+            style={{
+              fontSize: '1.05rem',
+              lineHeight: '1.35',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontWeight: 700,
+              display: 'block',
+            }}
+            title={group.category?.categoryName}
+          >
             {group.category?.categoryName}
           </span>
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <StatusBadge status={group.status} />
             {getActivityBadge(group.activityType)}
             {group.bulkLabel && (
-              <span className="badge badge-purple" style={{ fontSize: '0.72rem' }}>통합 신청</span>
+              <span className="badge badge-outline" style={{ fontSize: '0.72rem' }}>
+                통합 신청
+              </span>
             )}
           </div>
         </div>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginTop: '0.15rem' }}>
           {group.bulkLabel ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <span className="admin-request-username" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+              <span className="admin-request-username" style={{ fontSize: '0.92rem', fontWeight: 600 }}>
                 {sortUsersByGeneration(group.users)[0]?.name || '로딩중…'}
                 {group.users.length > 1 ? ` 외 ${group.users.length - 1}명` : ''}
               </span>
               <button
                 className="btn-text"
                 onClick={() => setUsersExpanded(!usersExpanded)}
-                style={{ fontSize: '0.8rem', fontWeight: 600, color: '#b09a5c', padding: '0 4px', cursor: 'pointer', background: 'none', border: 'none' }}
+                style={{ fontSize: '0.8rem', padding: '0 4px' }}
               >
                 {usersExpanded ? '접기' : '명단 보기'}
               </button>
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span className="admin-request-username" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+              <span className="admin-request-username" style={{ fontSize: '0.92rem', fontWeight: 600 }}>
                 {group.users[0]?.name}
               </span>
             </div>
           )}
 
           {canModify && (group.status === 'PENDING' || group.status === 'REJECTED') && (
-            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexShrink: 0 }}>
               <button
                 className="btn btn-outline btn-sm"
-                style={{ padding: '4px 10px', fontSize: '0.8rem', height: 'auto', display: 'flex', alignItems: 'center' }}
+                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                 onClick={() => openEditModal(firstReq)}
               >
                 수정
               </button>
               <button
                 className="btn btn-outline-danger btn-sm"
-                style={{ padding: '4px 10px', fontSize: '0.8rem', height: 'auto', display: 'flex', alignItems: 'center' }}
+                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                 onClick={() => handleDeleteClick(firstReq.id)}
               >
                 삭제
@@ -122,41 +137,45 @@ export default function DashboardRequestCard({
       </div>
 
       {group.bulkLabel && usersExpanded && (
-        <div className="bulk-users-expanded-list" style={{ marginTop: '0.75rem', marginBottom: '0.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255, 255, 255, 0.02)', padding: '0.5rem', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.05)', width: '100%' }}>
+        <div className="bulk-users-expanded-list">
           {sortUsersByGeneration(group.users).map((u: User) => (
-            <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+            <div key={u.id} className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem', background: 'var(--bg-secondary)' }}>
               <span style={{ fontWeight: 600 }}>{u.name}</span>
             </div>
           ))}
         </div>
       )}
-      
-      <div className="request-description" style={{ marginTop: '1rem', flexGrow: 1 }}>
-        <p style={{
-          margin: 0,
-          width: '100%',
-          fontSize: '0.95rem',
-          lineHeight: '1.6',
-          color: 'var(--text-secondary)',
-          ...(!expanded.has(firstReq.id) ? {
-            display: '-webkit-box',
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'pre-wrap'
-          } : {
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-all'
-          })
-        }}>
+
+      <div className="request-description" style={{ marginTop: '0.85rem', flexGrow: 1 }}>
+        <p
+          style={{
+            margin: 0,
+            width: '100%',
+            fontSize: '0.92rem',
+            lineHeight: '1.6',
+            color: 'var(--text-secondary)',
+            ...(!expanded.has(firstReq.id)
+              ? {
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'pre-wrap',
+                }
+              : {
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
+                }),
+          }}
+        >
           {group.description}
         </p>
-        {(group.description.length > 40 || group.description.includes('\n')) && (
+        {(group.description.length > 50 || group.description.includes('\n')) && (
           <button
             className="btn-text"
             onClick={() => toggleExpand(firstReq.id)}
-            style={{ padding: '4px 0', fontSize: '0.8rem', marginTop: '0.5rem', display: 'inline-block', color: '#b09a5c', fontWeight: 600 }}
+            style={{ padding: '4px 0', fontSize: '0.8rem', marginTop: '0.35rem', display: 'inline-block' }}
           >
             {expanded.has(firstReq.id) ? '간략히 보기' : '자세히 보기'}
           </button>
@@ -164,43 +183,36 @@ export default function DashboardRequestCard({
       </div>
 
       {group.status === 'REJECTED' && group.rejectedReason && (
-        <div className="request-rejected-info" style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          width: '100%', 
-          padding: '0.75rem', 
-          marginTop: '0.5rem', 
-          alignItems: 'flex-start',
-          background: 'rgba(239, 68, 68, 0.05)',
-          borderLeft: '3px solid rgba(239, 68, 68, 0.5)',
-          borderRadius: '0 6px 6px 0'
-        }}>
-          <p className="rejected-reason" style={{
-            margin: 0,
-            width: '100%',
-            textAlign: 'left',
-            fontSize: '0.9rem',
-            color: 'var(--text-primary)',
-            ...(!expandedReasons.has(firstReq.id) ? {
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'normal'
-            } : {
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-all'
-            })
-          }}>
-            <span className="rejected-reason-label" style={{ color: 'var(--danger)', fontWeight: 600, marginRight: '4px' }}>반려 사유:</span>
+        <div className="request-rejected-info">
+          <p
+            className="rejected-reason"
+            style={{
+              margin: 0,
+              width: '100%',
+              textAlign: 'left',
+              ...(!expandedReasons.has(firstReq.id)
+                ? {
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'normal',
+                  }
+                : {
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all',
+                  }),
+            }}
+          >
+            <span className="rejected-reason-label">반려 사유:</span>
             {group.rejectedReason}
           </p>
           {group.rejectedReason.length > 60 && (
             <button
               className="btn-text"
               onClick={() => toggleExpandReason(firstReq.id)}
-              style={{ padding: '4px 0', fontSize: '0.8rem', marginTop: '4px', display: 'inline-block', color: 'var(--danger)', fontWeight: 500 }}
+              style={{ padding: '4px 0', fontSize: '0.78rem', marginTop: '4px', display: 'inline-block', color: 'var(--danger)' }}
             >
               {expandedReasons.has(firstReq.id) ? '간략히 보기' : '자세히 보기'}
             </button>
@@ -209,32 +221,38 @@ export default function DashboardRequestCard({
       )}
 
       {group.evidenceFileUrl && (
-        <div className="request-evidence" style={{ marginTop: '0.75rem', paddingBottom: '0.5rem' }}>
+        <div className="request-evidence" style={{ marginTop: '0.65rem' }}>
           <a href={group.evidenceFileUrl} target="_blank" rel="noopener noreferrer" className="evidence-link">
-            📎 증빙 파일
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
+            증빙 파일
           </a>
         </div>
       )}
 
-      <div className="request-card-footer" style={{ 
-        marginTop: '1.25rem', 
-        paddingTop: '1rem', 
-        borderTop: '1px solid rgba(255, 255, 255, 0.04)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>활동 일자</span>
-          <span className="request-date" style={{ marginRight: 'auto', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+      <div
+        className="request-card-footer"
+        style={{
+          marginTop: '1rem',
+          paddingTop: '0.85rem',
+          borderTop: '1px solid var(--border-subtle)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>활동 일자</span>
+          <span className="request-date" style={{ color: 'var(--text-primary)', fontSize: '0.88rem', fontWeight: 600 }}>
             {formatDate(group.activityDate || group.createdAt)}
           </span>
         </div>
         {group.appliedHours !== null && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>신청 시간</span>
-            <span className="request-hours" style={{ margin: 0, color: 'var(--secondary-light)', fontSize: '1.1rem' }}>
-              {group.appliedHours}h
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1px' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>신청 시간</span>
+            <span className="request-hours" style={{ margin: 0, color: 'var(--primary)', fontSize: '1.1rem' }}>
+              {group.appliedHours}시간
             </span>
           </div>
         )}

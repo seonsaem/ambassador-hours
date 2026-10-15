@@ -250,222 +250,143 @@ export default function CategoriesPage() {
 
         <div className="grid-12">
           {/* Left Column: Add New Category (col-span-5) */}
-          <div className="glass-card col-5" style={{ padding: '6px', borderRadius: 'var(--bezel-outer-radius)', background: 'var(--bezel-outer-bg)', border: '1px solid var(--bezel-outer-ring)' }}>
-            <div className="glass-card-inner" style={{ borderRadius: 'var(--bezel-inner-radius)', padding: 'var(--space-xl)', background: 'var(--bezel-inner-bg)', boxShadow: 'var(--bezel-inner-highlight)' }}>
-              <h3 className="card-title" style={{ fontSize: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)', display: 'block' }}>
-                새 카테고리 추가
-              </h3>
-              <form onSubmit={handleAdd} className="category-add-form" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">카테고리명</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="예: 교내 행사 의전"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    required
+          <div className="card col-5">
+            <h3 className="card-title" style={{ fontSize: '1.125rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)', display: 'block' }}>
+              새 카테고리 추가
+            </h3>
+            <form onSubmit={handleAdd} className="category-add-form" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">카테고리명</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="예: 교내 행사 의전"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  required
+                  disabled={actionLoading}
+                />
+              </div>
+              
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">활동 유형</label>
+                <div className="segmented-control" style={{ display: 'flex', width: '100%' }}>
+                  <button
+                    type="button"
+                    onClick={() => setNewType('OFFICIAL')}
                     disabled={actionLoading}
-                    style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
-                  />
-                </div>
-                
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">활동 유형</label>
-                  <div 
-                    style={{ 
-                      display: 'flex', 
-                      background: 'rgba(5,5,8,0.3)', 
-                      borderRadius: 'var(--radius-md)', 
-                      padding: '4px', 
-                      border: '1px solid rgba(255,255,255,0.06)' 
-                    }}
+                    className={`segmented-btn ${newType === 'OFFICIAL' ? 'segmented-btn-active' : ''}`}
+                    style={{ flex: 1 }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => setNewType('OFFICIAL')}
-                      disabled={actionLoading}
-                      style={{
-                        flex: 1,
-                        padding: '10px 0',
-                        borderRadius: 'calc(var(--radius-md) - 2px)',
-                        background: newType === 'OFFICIAL' ? 'rgba(255,255,255,0.07)' : 'transparent',
-                        color: newType === 'OFFICIAL' ? 'var(--text-primary)' : 'var(--text-muted)',
-                        border: 'none',
-                        fontSize: '0.85rem',
-                        fontWeight: newType === 'OFFICIAL' ? 600 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 200ms cubic-bezier(0.16, 1, 0.3, 1)'
-                      }}
-                    >
-                      공식 활동
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewType('AUTONOMOUS')}
-                      disabled={actionLoading}
-                      style={{
-                        flex: 1,
-                        padding: '10px 0',
-                        borderRadius: 'calc(var(--radius-md) - 2px)',
-                        background: newType === 'AUTONOMOUS' ? 'rgba(255,255,255,0.07)' : 'transparent',
-                        color: newType === 'AUTONOMOUS' ? 'var(--text-primary)' : 'var(--text-muted)',
-                        border: 'none',
-                        fontSize: '0.85rem',
-                        fontWeight: newType === 'AUTONOMOUS' ? 600 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 200ms cubic-bezier(0.16, 1, 0.3, 1)'
-                      }}
-                    >
-                      자율 활동
-                    </button>
-                  </div>
+                    공식 활동
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewType('AUTONOMOUS')}
+                    disabled={actionLoading}
+                    className={`segmented-btn ${newType === 'AUTONOMOUS' ? 'segmented-btn-active' : ''}`}
+                    style={{ flex: 1 }}
+                  >
+                    자율 활동
+                  </button>
                 </div>
+              </div>
 
-                {newType === 'AUTONOMOUS' && (
-                  <div className="form-group" style={{ marginBottom: 0, position: 'relative' }}>
-                    <label className="form-label">담당 부서 (선택)</label>
-                    <button
-                      type="button"
-                      className="form-input"
-                      onClick={() => setIsNewDeptOpen(!isNewDeptOpen)}
-                      disabled={actionLoading}
-                      style={{
-                        background: 'rgba(5,5,8,0.3)',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                        color: 'var(--text-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        cursor: 'pointer',
-                        width: '100%',
-                        textAlign: 'left'
-                      }}
-                    >
-                      <span>{DEPARTMENT_OPTIONS.find(d => d.value === newDepartment)?.label || '부서 없음'}</span>
-                      <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>{isNewDeptOpen ? '▲' : '▼'}</span>
-                    </button>
+              {newType === 'AUTONOMOUS' && (
+                <div className="form-group" style={{ marginBottom: 0, position: 'relative' }}>
+                  <label className="form-label">담당 부서 (선택)</label>
+                  <button
+                    type="button"
+                    className={`custom-dropdown-trigger ${isNewDeptOpen ? 'custom-dropdown-trigger-open' : ''}`}
+                    onClick={() => setIsNewDeptOpen(!isNewDeptOpen)}
+                    disabled={actionLoading}
+                  >
+                    <span>{DEPARTMENT_OPTIONS.find(d => d.value === newDepartment)?.label || '부서 없음'}</span>
+                    <span className={`custom-dropdown-chevron ${isNewDeptOpen ? 'custom-dropdown-chevron-open' : ''}`}>▼</span>
+                  </button>
 
-                    {isNewDeptOpen && (
-                      <>
-                        <div 
-                          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }} 
-                          onClick={() => setIsNewDeptOpen(false)} 
-                        />
-                        <div
-                          className="glass-card"
-                          style={{
-                            position: 'absolute',
-                            marginTop: '4px',
-                            width: '100%',
-                            maxHeight: '200px',
-                            overflowY: 'auto',
-                            zIndex: 1000,
-                            background: 'rgba(15, 15, 25, 0.95)',
-                            backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: 'var(--radius-sm)',
-                            boxShadow: '0 8px 32px 0 rgba(0,0,0,0.5)',
-                            padding: '4px'
-                          }}
-                        >
-                          {DEPARTMENT_OPTIONS.map((dept) => {
-                            const isSelected = newDepartment === dept.value;
-                            return (
-                              <button
-                                key={dept.value}
-                                type="button"
-                                onClick={() => {
-                                  setNewDepartment(dept.value);
-                                  setIsNewDeptOpen(false);
-                                }}
-                                style={{
-                                  width: '100%',
-                                  padding: '10px 14px',
-                                  background: isSelected ? 'rgba(255,255,255,0.06)' : 'transparent',
-                                  color: isSelected ? 'var(--secondary)' : 'var(--text-primary)',
-                                  border: 'none',
-                                  borderRadius: 'calc(var(--radius-sm) - 2px)',
-                                  textAlign: 'left',
-                                  fontSize: '0.85rem',
-                                  fontWeight: isSelected ? 600 : 500,
-                                  cursor: 'pointer',
-                                  transition: 'all 150ms ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (!isSelected) e.currentTarget.style.background = 'transparent';
-                                }}
-                              >
-                                {dept.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
+                  {isNewDeptOpen && (
+                    <>
+                      <div 
+                        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }} 
+                        onClick={() => setIsNewDeptOpen(false)} 
+                      />
+                      <div className="custom-dropdown-menu" style={{ maxHeight: '220px' }}>
+                        {DEPARTMENT_OPTIONS.map((dept) => {
+                          const isSelected = newDepartment === dept.value;
+                          return (
+                            <button
+                              key={dept.value}
+                              type="button"
+                              onClick={() => {
+                                setNewDepartment(dept.value);
+                                setIsNewDeptOpen(false);
+                              }}
+                              className={`custom-dropdown-item ${isSelected ? 'custom-dropdown-item-selected' : ''}`}
+                            >
+                              <span>{dept.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">기본 배정 시간</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  min={0}
+                  step={0.5}
+                  value={newHours}
+                  onChange={(e) => setNewHours(parseFloat(e.target.value))}
+                  required
+                  disabled={actionLoading}
+                />
+              </div>
+
+              {newHours === 0 && (
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">기본 배정 시간</label>
+                  <label className="form-label">최대 제한 시간 (선택)</label>
                   <input
                     type="number"
                     className="form-input"
-                    min={0}
+                    min={0.5}
                     step={0.5}
-                    value={newHours}
-                    onChange={(e) => setNewHours(parseFloat(e.target.value))}
-                    required
+                    placeholder="제한 없음"
+                    value={newMaxHours}
+                    onChange={(e) => setNewMaxHours(e.target.value)}
                     disabled={actionLoading}
-                    style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
                   />
                 </div>
+              )}
 
-                {newHours === 0 && (
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">최대 제한 시간 (선택)</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      min={0.5}
-                      step={0.5}
-                      placeholder="제한 없음"
-                      value={newMaxHours}
-                      onChange={(e) => setNewMaxHours(e.target.value)}
-                      disabled={actionLoading}
-                      style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
-                    />
-                  </div>
+              <button 
+                type="submit" 
+                className="btn btn-primary btn-full mt-sm" 
+                disabled={actionLoading || !newName.trim()}
+              >
+                {actionLoading ? (
+                  <span className="loading-spinner-sm" />
+                ) : (
+                  '카테고리 등록'
                 )}
-
-                <button 
-                  type="submit" 
-                  className="btn btn-primary btn-full mt-sm" 
-                  disabled={actionLoading || !newName.trim()}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', fontWeight: 600 }}
-                >
-                  {actionLoading ? (
-                    <span className="loading-spinner-sm" />
-                  ) : (
-                    '카테고리 등록'
-                  )}
-                </button>
-              </form>
-            </div>
+              </button>
+            </form>
           </div>
 
           {/* Right Column: Category List (col-span-7) */}
-          <div className="glass-card col-7" style={{ padding: '6px', borderRadius: 'var(--bezel-outer-radius)', background: 'var(--bezel-outer-bg)', border: '1px solid var(--bezel-outer-ring)' }}>
-            <div className="glass-card-inner" style={{ borderRadius: 'var(--bezel-inner-radius)', padding: 'var(--space-xl)', background: 'var(--bezel-inner-bg)', boxShadow: 'var(--bezel-inner-highlight)' }}>
-              <div className="flex justify-between items-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
-                <div>
-                  <h3 className="card-title" style={{ fontSize: '1.25rem', marginBottom: '2px' }}>
+          <div className="card col-7" style={{ minWidth: 0 }}>
+            <div style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 className="card-title" style={{ fontSize: '1.125rem', marginBottom: 0 }}>
                     등록된 카테고리
                   </h3>
-                  <span className="badge badge-outline" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
+                  <span className="badge badge-outline" style={{ fontSize: '0.75rem', padding: '2px 8px' }}>
                     총 {
                       categories.filter((cat) => {
                         if (listFilter === 'ALL') return true;
@@ -476,339 +397,232 @@ export default function CategoriesPage() {
                     }개
                   </span>
                 </div>
-
-                {/* Filter Tabs */}
-                <div 
-                  style={{ 
-                    display: 'flex', 
-                    background: 'rgba(5,5,8,0.4)', 
-                    borderRadius: 'var(--radius-sm)', 
-                    padding: '2px', 
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    flexWrap: 'wrap',
-                    gap: '2px'
-                  }}
-                >
-                  {(['ALL', 'OFFICIAL', '기타 자율', ...SHARED_DEPARTMENTS] as const).map((filter) => (
-                    <button
-                      key={filter}
-                      type="button"
-                      onClick={() => setListFilter(filter)}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: 'calc(var(--radius-sm) - 1px)',
-                        background: listFilter === filter ? 'rgba(255,255,255,0.07)' : 'transparent',
-                        color: listFilter === filter ? 'var(--text-primary)' : 'var(--text-muted)',
-                        border: 'none',
-                        fontSize: '0.75rem',
-                        fontWeight: listFilter === filter ? 600 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 200ms ease'
-                      }}
-                    >
-                      {filter === 'ALL' ? '전체' : filter === 'OFFICIAL' ? '공식' : filter}
-                    </button>
-                  ))}
-                </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                {categories
-                  .filter((cat) => {
-                    if (listFilter === 'ALL') return true;
-                    if (listFilter === 'OFFICIAL') return cat.activityType === 'OFFICIAL';
-                    if (listFilter === '기타 자율') return cat.activityType === 'AUTONOMOUS' && !cat.department;
-                    return cat.activityType === 'AUTONOMOUS' && cat.department === listFilter;
-                  })
-                  .map((cat) => (
-                  <div 
-                    key={cat.id} 
-                    className="category-item-row"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 'var(--space-sm)',
-                      padding: '1.2rem',
-                      background: cat.isActive ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.005)',
-                      border: '1px solid rgba(255,255,255,0.04)',
-                      borderRadius: 'var(--radius-md)',
-                      opacity: cat.isActive ? 1 : 0.6,
-                      transition: 'all 400ms cubic-bezier(0.32, 0.72, 0, 1)',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (cat.isActive) {
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (cat.isActive) {
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)';
-                        e.currentTarget.style.transform = 'none';
-                      }
-                    }}
+              {/* Filter Tabs (Wrapping Pills) */}
+              <div className="category-filter-pills">
+                {(['ALL', 'OFFICIAL', '기타 자율', ...SHARED_DEPARTMENTS] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setListFilter(filter)}
+                    className={`category-filter-pill ${listFilter === filter ? 'is-active' : ''}`}
                   >
-                    {editId === cat.id ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                        <div className="form-row category-edit-grid">
-                          <div>
-                            <label className="form-label" style={{ fontSize: '0.7rem' }}>카테고리명</label>
-                            <input
-                              type="text"
-                              className="form-input form-input-sm"
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                              style={{ background: 'rgba(5,5,8,0.5)' }}
-                            />
-                          </div>
-                          <div>
-                            <label className="form-label" style={{ fontSize: '0.7rem' }}>활동유형</label>
-                            <div 
-                              style={{ 
-                                display: 'flex', 
-                                background: 'rgba(5,5,8,0.5)', 
-                                borderRadius: 'var(--radius-sm)', 
-                                padding: '2px', 
-                                border: '1px solid rgba(255,255,255,0.06)' 
-                              }}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => setEditType('OFFICIAL')}
-                                style={{
-                                  flex: 1,
-                                  padding: '5px 0',
-                                  borderRadius: 'calc(var(--radius-sm) - 1px)',
-                                  background: editType === 'OFFICIAL' ? 'rgba(255,255,255,0.07)' : 'transparent',
-                                  color: editType === 'OFFICIAL' ? 'var(--text-primary)' : 'var(--text-muted)',
-                                  border: 'none',
-                                  fontSize: '0.75rem',
-                                  fontWeight: editType === 'OFFICIAL' ? 600 : 500,
-                                  cursor: 'pointer',
-                                  transition: 'all 200ms ease'
-                                }}
-                              >
-                                공식
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditType('AUTONOMOUS')}
-                                style={{
-                                  flex: 1,
-                                  padding: '5px 0',
-                                  borderRadius: 'calc(var(--radius-sm) - 1px)',
-                                  background: editType === 'AUTONOMOUS' ? 'rgba(255,255,255,0.07)' : 'transparent',
-                                  color: editType === 'AUTONOMOUS' ? 'var(--text-primary)' : 'var(--text-muted)',
-                                  border: 'none',
-                                  fontSize: '0.75rem',
-                                  fontWeight: editType === 'AUTONOMOUS' ? 600 : 500,
-                                  cursor: 'pointer',
-                                  transition: 'all 200ms ease'
-                                }}
-                              >
-                                자율
-                              </button>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="form-label" style={{ fontSize: '0.7rem' }}>배정시간</label>
-                            <input
-                              type="number"
-                              className="form-input form-input-sm"
-                              min={0}
-                              step={0.5}
-                              value={editHours}
-                              onChange={(e) => setEditHours(parseFloat(e.target.value))}
-                              style={{ background: 'rgba(5,5,8,0.5)' }}
-                            />
-                          </div>
-                        </div>
+                    {filter === 'ALL' ? '전체' : filter === 'OFFICIAL' ? '공식' : filter}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                        {editType === 'AUTONOMOUS' && (
-                          <div style={{ marginTop: '2px', position: 'relative' }}>
-                            <label className="form-label" style={{ fontSize: '0.7rem' }}>담당 부서</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+              {categories
+                .filter((cat) => {
+                  if (listFilter === 'ALL') return true;
+                  if (listFilter === 'OFFICIAL') return cat.activityType === 'OFFICIAL';
+                  if (listFilter === '기타 자율') return cat.activityType === 'AUTONOMOUS' && !cat.department;
+                  return cat.activityType === 'AUTONOMOUS' && cat.department === listFilter;
+                })
+                .map((cat) => (
+                <div 
+                  key={cat.id} 
+                  className="category-item-row"
+                  style={{ opacity: cat.isActive ? 1 : 0.6 }}
+                >
+                  {editId === cat.id ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                      {/* Row 1: Full-width Category Name so long names never overflow or get clipped */}
+                      <div style={{ width: '100%' }}>
+                        <label className="form-label" style={{ fontSize: '0.78rem' }}>카테고리명</label>
+                        <input
+                          type="text"
+                          className="form-input form-input-sm"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      {/* Row 2: Activity Type + Assigned Hours */}
+                      <div className="category-edit-grid">
+                        <div style={{ minWidth: 0 }}>
+                          <label className="form-label" style={{ fontSize: '0.78rem' }}>활동 유형</label>
+                          <div className="segmented-control" style={{ display: 'flex', width: '100%' }}>
                             <button
                               type="button"
-                              className="form-input form-input-sm"
-                              onClick={() => setIsEditDeptOpen(!isEditDeptOpen)}
-                              disabled={actionLoading}
-                              style={{
-                                background: 'rgba(5,5,8,0.5)',
-                                color: 'var(--text-primary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                cursor: 'pointer',
-                                width: '100%',
-                                textAlign: 'left'
-                              }}
+                              onClick={() => setEditType('OFFICIAL')}
+                              className={`segmented-btn ${editType === 'OFFICIAL' ? 'segmented-btn-active is-active' : ''}`}
+                              style={{ flex: 1, padding: '6px 8px', fontSize: '0.78rem' }}
                             >
-                              <span>{DEPARTMENT_OPTIONS.find(d => d.value === editDepartment)?.label || '부서 없음'}</span>
-                              <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>{isEditDeptOpen ? '▲' : '▼'}</span>
+                              공식 활동
                             </button>
-
-                            {isEditDeptOpen && (
-                              <>
-                                <div 
-                                  style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }} 
-                                  onClick={() => setIsEditDeptOpen(false)} 
-                                />
-                                <div
-                                  className="glass-card"
-                                  style={{
-                                    position: 'absolute',
-                                    marginTop: '4px',
-                                    width: '100%',
-                                    maxHeight: '150px',
-                                    overflowY: 'auto',
-                                    zIndex: 1000,
-                                    background: 'rgba(15, 15, 25, 0.95)',
-                                    backdropFilter: 'blur(12px)',
-                                    border: '1px solid rgba(255,255,255,0.08)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    boxShadow: '0 8px 32px 0 rgba(0,0,0,0.5)',
-                                    padding: '4px'
-                                  }}
-                                >
-                                  {DEPARTMENT_OPTIONS.map((dept) => {
-                                    const isSelected = editDepartment === dept.value;
-                                    return (
-                                      <button
-                                        key={dept.value}
-                                        type="button"
-                                        onClick={() => {
-                                          setEditDepartment(dept.value);
-                                          setIsEditDeptOpen(false);
-                                        }}
-                                        style={{
-                                          width: '100%',
-                                          padding: '8px 12px',
-                                          background: isSelected ? 'rgba(255,255,255,0.06)' : 'transparent',
-                                          color: isSelected ? 'var(--secondary)' : 'var(--text-primary)',
-                                          border: 'none',
-                                          borderRadius: 'calc(var(--radius-sm) - 2px)',
-                                          textAlign: 'left',
-                                          fontSize: '0.8rem',
-                                          fontWeight: isSelected ? 600 : 500,
-                                          cursor: 'pointer',
-                                          transition: 'all 150ms ease'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          if (!isSelected) e.currentTarget.style.background = 'transparent';
-                                        }}
-                                      >
-                                        {dept.label}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </>
-                            )}
+                            <button
+                              type="button"
+                              onClick={() => setEditType('AUTONOMOUS')}
+                              className={`segmented-btn ${editType === 'AUTONOMOUS' ? 'segmented-btn-active is-active' : ''}`}
+                              style={{ flex: 1, padding: '6px 8px', fontSize: '0.78rem' }}
+                            >
+                              자율 활동
+                            </button>
                           </div>
-                        )}
-
-                        {editHours === 0 && (
-                          <div style={{ marginTop: '4px' }}>
-                            <label className="form-label" style={{ fontSize: '0.7rem' }}>최대 제한 시간 (선택)</label>
-                            <input
-                              type="number"
-                              className="form-input form-input-sm"
-                              min={0.5}
-                              step={0.5}
-                              placeholder="제한 없음"
-                              value={editMaxHours}
-                              onChange={(e) => setEditMaxHours(e.target.value)}
-                              disabled={actionLoading}
-                              style={{ background: 'rgba(5,5,8,0.5)' }}
-                            />
-                          </div>
-                        )}
-
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)' }}>
-                          <button
-                            className="btn btn-success btn-sm"
-                            onClick={() => handleEdit(cat.id)}
-                            disabled={actionLoading}
-                            style={{ height: '32px', padding: '0 var(--space-md)' }}
-                          >
-                            저장
-                          </button>
-                          <button
-                            className="btn btn-outline btn-sm"
-                            onClick={() => setEditId(null)}
-                            style={{ height: '32px', padding: '0 var(--space-md)' }}
-                          >
-                            취소
-                          </button>
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <label className="form-label" style={{ fontSize: '0.78rem' }}>배정 시간</label>
+                          <input
+                            type="number"
+                            className="form-input form-input-sm"
+                            min={0}
+                            step={0.5}
+                            value={editHours}
+                            onChange={(e) => setEditHours(parseFloat(e.target.value))}
+                            style={{ width: '100%' }}
+                          />
                         </div>
                       </div>
-                    ) : (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-md)' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                            {cat.categoryName}
-                          </span>
-                          <div style={{ display: 'flex', gap: 'var(--space-xs)', alignItems: 'center' }}>
-                            <span className={`badge ${cat.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
-                              {cat.activityType === 'OFFICIAL' ? '공식' : '자율'}
-                            </span>
-                            {cat.activityType === 'AUTONOMOUS' && cat.department && (
-                              <span className="badge badge-outline" style={{ fontSize: '0.65rem', padding: '2px 8px', borderColor: 'rgba(176,154,92,0.3)', color: '#b09a5c', background: 'rgba(176,154,92,0.05)' }}>
-                                {cat.department}
-                              </span>
-                            )}
-                            <span className="badge badge-outline" style={{ fontSize: '0.65rem', padding: '2px 8px', borderColor: 'rgba(255,255,255,0.06)', color: 'var(--secondary)' }}>
-                              {cat.assignedHours === 0 ? (cat.maxHours ? `가변 시간 (최대 ${cat.maxHours}h)` : '가변 시간') : `${cat.assignedHours}시간 배정`}
-                            </span>
-                            {!cat.isActive && (
-                              <span className="badge badge-danger" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
-                                비활성
-                              </span>
-                            )}
-                          </div>
-                        </div>
 
-                        <div className="action-buttons" style={{ display: 'flex', gap: 'var(--space-xs)' }}>
+                      {editType === 'AUTONOMOUS' && (
+                        <div style={{ marginTop: '2px', position: 'relative' }}>
+                          <label className="form-label" style={{ fontSize: '0.78rem' }}>담당 부서</label>
                           <button
-                            className="btn btn-outline btn-sm"
-                            onClick={() => startEdit(cat)}
+                            type="button"
+                            className={`custom-dropdown-trigger ${isEditDeptOpen ? 'custom-dropdown-trigger-open' : ''}`}
+                            onClick={() => setIsEditDeptOpen(!isEditDeptOpen)}
                             disabled={actionLoading}
-                            style={{ height: '32px', padding: '0 var(--space-md)', fontSize: '0.75rem' }}
+                            style={{ minHeight: '36px', padding: '6px 12px', fontSize: '0.8125rem' }}
                           >
-                            수정
+                            <span>{DEPARTMENT_OPTIONS.find(d => d.value === editDepartment)?.label || '부서 없음'}</span>
+                            <span className={`custom-dropdown-chevron ${isEditDeptOpen ? 'custom-dropdown-chevron-open' : ''}`}>▼</span>
                           </button>
-                          {cat.categoryName !== '기타' && (
+
+                          {isEditDeptOpen && (
                             <>
-                              <button
-                                className={`btn btn-sm ${cat.isActive ? 'btn-outline-danger' : 'btn-success'}`}
-                                onClick={() => handleToggleActive(cat)}
-                                disabled={actionLoading}
-                                style={{ height: '32px', padding: '0 var(--space-md)', fontSize: '0.75rem' }}
-                              >
-                                {cat.isActive ? '비활성화' : '활성화'}
-                              </button>
-                              <button
-                                className="btn btn-ghost btn-sm"
-                                onClick={() => setDeleteCategory(cat)}
-                                disabled={actionLoading}
-                                style={{ height: '32px', width: '32px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                aria-label="카테고리 삭제"
-                              >
-                                🗑️
-                              </button>
+                              <div 
+                                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }} 
+                                onClick={() => setIsEditDeptOpen(false)} 
+                              />
+                              <div className="custom-dropdown-menu" style={{ maxHeight: '180px' }}>
+                                {DEPARTMENT_OPTIONS.map((dept) => {
+                                  const isSelected = editDepartment === dept.value;
+                                  return (
+                                    <button
+                                      key={dept.value}
+                                      type="button"
+                                      onClick={() => {
+                                        setEditDepartment(dept.value);
+                                        setIsEditDeptOpen(false);
+                                      }}
+                                      className={`custom-dropdown-item ${isSelected ? 'custom-dropdown-item-selected is-selected' : ''}`}
+                                    >
+                                      <span>{dept.label}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </>
                           )}
                         </div>
+                      )}
+
+                      {editHours === 0 && (
+                        <div style={{ marginTop: '4px' }}>
+                          <label className="form-label" style={{ fontSize: '0.78rem' }}>최대 제한 시간 (선택)</label>
+                          <input
+                            type="number"
+                            className="form-input form-input-sm"
+                            min={0.5}
+                            step={0.5}
+                            placeholder="제한 없음"
+                            value={editMaxHours}
+                            onChange={(e) => setEditMaxHours(e.target.value)}
+                            disabled={actionLoading}
+                          />
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', paddingTop: '4px' }}>
+                        <button
+                          className="btn btn-success btn-sm"
+                          onClick={() => handleEdit(cat.id)}
+                          disabled={actionLoading}
+                        >
+                          저장
+                        </button>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => setEditId(null)}
+                        >
+                          취소
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1 1 240px', minWidth: 0 }}>
+                        <span
+                          style={{
+                            fontSize: '0.9375rem',
+                            fontWeight: 700,
+                            color: 'var(--text-primary)',
+                            lineHeight: 1.4,
+                            wordBreak: 'keep-all',
+                            overflowWrap: 'break-word',
+                          }}
+                        >
+                          {cat.categoryName}
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span className={`badge ${cat.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`}>
+                            {cat.activityType === 'OFFICIAL' ? '공식' : '자율'}
+                          </span>
+                          {cat.activityType === 'AUTONOMOUS' && cat.department && (
+                            <span className="badge badge-gold">
+                              {cat.department}
+                            </span>
+                          )}
+                          <span className="badge badge-outline">
+                            {cat.assignedHours === 0 ? (cat.maxHours ? `가변 시간 (최대 ${cat.maxHours}h)` : '가변 시간') : `${cat.assignedHours}시간 배정`}
+                          </span>
+                          {!cat.isActive && (
+                            <span className="badge badge-danger">
+                              비활성
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="action-buttons" style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => startEdit(cat)}
+                          disabled={actionLoading}
+                        >
+                          수정
+                        </button>
+                        {cat.categoryName !== '기타' && (
+                          <>
+                            <button
+                              className={`btn btn-sm ${cat.isActive ? 'btn-outline-danger' : 'btn-success'}`}
+                              onClick={() => handleToggleActive(cat)}
+                              disabled={actionLoading}
+                            >
+                              {cat.isActive ? '비활성화' : '활성화'}
+                            </button>
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setDeleteCategory(cat)}
+                              disabled={actionLoading}
+                              style={{ height: '32px', width: '32px', borderRadius: 'var(--radius-sm)', padding: 0 }}
+                              aria-label="카테고리 삭제"
+                              title="카테고리 삭제"
+                            >
+                              🗑️
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>

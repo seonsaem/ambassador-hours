@@ -22,9 +22,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedName = String(name).trim();
+
     // Find invited user by email
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
@@ -46,9 +49,9 @@ export async function POST(request: NextRequest) {
 
     // Update user
     const updated = await prisma.user.update({
-      where: { email },
+      where: { email: normalizedEmail },
       data: {
-        name,
+        name: normalizedName,
         password: hashedPassword,
         status: 'ACTIVE',
       },

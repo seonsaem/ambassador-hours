@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/guards';
-import fs from 'fs';
-import path from 'path';
 
 export async function GET(
   request: NextRequest,
@@ -11,7 +9,7 @@ export async function GET(
   try {
     const authResult = await requireAuth();
     if (authResult.error) return authResult.error;
-    const { session } = authResult;
+    const { session, dbUser } = authResult;
 
     const { id: fileId } = await params;
     if (!fileId) {
@@ -26,45 +24,33 @@ export async function GET(
       return new NextResponse('File not found', { status: 404 });
     }
 
-    // Owner or admin verification
+    // Owner, associated activity participant, or admin verification
     const currentUserId = Number(session.user.id);
-    const dbUser = await prisma.user.findUnique({
-      where: { id: currentUserId },
-      select: { role: true },
-    });
-    const isAdmin = dbUser?.role === 'ADMIN';
+    const isAdmin = dbUser.role === 'ADMIN';
+    const isUploader = fileRecord.uploadedById !== null && fileRecord.uploadedById === currentUserId;
 
-    if (fileRecord.uploadedById === null) {
-      // Legacy files without uploadedById are restricted to admins
-      if (!isAdmin) {
-        return new NextResponse('Forbidden', { status: 403 });
-      }
-    } else {
-      const isOwner = fileRecord.uploadedById === currentUserId;
-      if (!isOwner && !isAdmin) {
+    if (!isAdmin && !isUploader) {
+      const linkedRequest = await prisma.activityRequest.findFirst({
+        where: {
+          evidenceFileUrl: `/api/files/${fileId}`,
+          OR: [
+            { userId: currentUserId },
+            { createdById: currentUserId },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (!linkedRequest) {
         return new NextResponse('Forbidden', { status: 403 });
       }
     }
 
     let buffer: Buffer;
-    const uploadDir = path.resolve(process.cwd(), 'uploads');
-    const filePath = path.resolve(process.cwd(), fileRecord.data);
-
-    // Prevent Path Traversal by checking if the path is within the allowed upload directory
-    // or if the record's path is a relative path starting with 'uploads/'
-    if (!filePath.startsWith(uploadDir) && !fileRecord.data.startsWith('uploads/')) {
-      return new NextResponse('Forbidden path access', { status: 403 });
-    }
-
-    if (fs.existsSync(filePath)) {
-      buffer = await fs.promises.readFile(filePath);
-    } else {
-      // Fallback for legacy base64-encoded DB entries
-      try {
-        buffer = Buffer.from(fileRecord.data, 'base64');
-      } catch {
-        return new NextResponse('File data missing or corrupted', { status: 404 });
-      }
+    try {
+      buffer = Buffer.from(fileRecord.data, 'base64');
+    } catch {
+      return new NextResponse('File data missing or corrupted', { status: 404 });
     }
 
     const encodedFilename = encodeURIComponent(fileRecord.filename).replace(/['()]/g, escape);
@@ -74,7 +60,7 @@ export async function GET(
       headers: {
         'Content-Type': fileRecord.mimeType,
         'Content-Disposition': `inline; filename*=UTF-8''${encodedFilename}`,
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Cache-Control': 'private, max-age=31536000, immutable',
         'Content-Security-Policy': "default-src 'none'; sandbox",
       },
     });

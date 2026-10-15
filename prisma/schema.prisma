@@ -20,6 +20,8 @@ model User {
   files     FileStore[]
   notices   Notice[]  @relation("AuthoredNotices")
   pushSubscriptions PushSubscription[]
+  resetToken        String?   @unique
+  resetTokenExpires DateTime?
 }
 
 model ActivityCategory {

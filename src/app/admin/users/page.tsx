@@ -438,7 +438,7 @@ export default function UsersPage() {
                           {editingUserId === user.id ? (
                             <input
                               type="text"
-                              className="form-input"
+                              className="form-input form-input-sm"
                               value={editingName}
                               onChange={(e) => setEditingName(e.target.value)}
                               onKeyDown={(e) => {
@@ -453,15 +453,10 @@ export default function UsersPage() {
                               autoFocus
                               style={{
                                 display: 'inline-block',
-                                width: '100px',
-                                padding: '2px 6px',
+                                width: '110px',
+                                padding: '3px 8px',
                                 fontSize: '0.85rem',
                                 margin: 0,
-                                height: 'auto',
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                color: 'var(--text-primary)',
-                                border: '1px solid var(--glass-border)',
-                                borderRadius: '4px',
                               }}
                             />
                           ) : (
@@ -538,8 +533,7 @@ export default function UsersPage() {
                                   {actionLoading === user.id ? <span className="loading-spinner-sm" /> : '정지'}
                                 </button>
                                 <button
-                                  className="btn btn-outline btn-sm"
-                                  style={{ borderColor: 'rgba(239, 68, 68, 0.5)', color: '#ef4444' }}
+                                  className="btn btn-outline-danger btn-sm"
                                   onClick={() => handleDeleteUser(user.id)}
                                   disabled={actionLoading === user.id}
                                   title="계정 완전히 삭제"
@@ -557,8 +551,7 @@ export default function UsersPage() {
                                   {actionLoading === user.id ? <span className="loading-spinner-sm" /> : '활성화'}
                                 </button>
                                 <button
-                                  className="btn btn-outline btn-sm"
-                                  style={{ borderColor: 'rgba(239, 68, 68, 0.5)', color: '#ef4444' }}
+                                  className="btn btn-outline-danger btn-sm"
                                   onClick={() => handleDeleteUser(user.id)}
                                   disabled={actionLoading === user.id}
                                   title="계정 완전히 삭제"
@@ -570,8 +563,7 @@ export default function UsersPage() {
                               <>
                                 <span className="text-muted" style={{ marginRight: '0.5rem' }}>대기중</span>
                                 <button
-                                  className="btn btn-outline btn-sm"
-                                  style={{ borderColor: 'rgba(239, 68, 68, 0.5)', color: '#ef4444' }}
+                                  className="btn btn-outline-danger btn-sm"
                                   onClick={() => handleDeleteUser(user.id)}
                                   disabled={actionLoading === user.id}
                                   title="계정 완전히 삭제"
@@ -648,7 +640,7 @@ export default function UsersPage() {
                         {editingUserId === user.id ? (
                           <input
                             type="text"
-                            className="form-input"
+                            className="form-input form-input-sm"
                             value={editingName}
                             onChange={(e) => setEditingName(e.target.value)}
                             onKeyDown={(e) => {
@@ -663,15 +655,10 @@ export default function UsersPage() {
                             autoFocus
                             style={{
                               display: 'inline-block',
-                              width: '100px',
-                              padding: '2px 6px',
+                              width: '110px',
+                              padding: '3px 8px',
                               fontSize: '0.85rem',
                               margin: 0,
-                              height: 'auto',
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              color: 'var(--text-primary)',
-                              border: '1px solid var(--glass-border)',
-                              borderRadius: '4px',
                             }}
                           />
                         ) : (
@@ -711,9 +698,9 @@ export default function UsersPage() {
                         {(user.autonomousHours ?? 0).toFixed(1)}h
                       </span>
                     </div>
-                    <div className="mobile-card-row" style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.04)', paddingTop: '6px', marginTop: '2px' }}>
+                    <div className="mobile-card-row" style={{ borderTop: '1px dashed var(--border-default)', paddingTop: '6px', marginTop: '2px' }}>
                       <span className="mobile-card-row-label" style={{ fontWeight: 600 }}>총 활동 시간</span>
-                      <strong style={{ color: 'var(--secondary)' }}>
+                      <strong style={{ color: 'var(--accent)' }}>
                         {(user.totalApprovedHours ?? 0).toFixed(1)}시간
                       </strong>
                     </div>

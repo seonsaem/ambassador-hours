@@ -9,6 +9,7 @@ export async function PUT(
   try {
     const authResult = await requireAuth();
     if (authResult.error) return authResult.error;
+    const { session, dbUser } = authResult;
 
     const { id } = await params;
     const noticeId = Number(id);
@@ -22,6 +23,15 @@ export async function PUT(
 
     if (!existing) {
       return NextResponse.json({ error: '공지사항을 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    const isAdmin = dbUser.role === 'ADMIN';
+    const isAuthor = existing.authorId === Number(session.user.id);
+    if (!isAdmin && !isAuthor) {
+      return NextResponse.json(
+        { error: '본인이 작성한 공지사항만 수정할 수 있습니다.' },
+        { status: 403 },
+      );
     }
 
     const body = await request.json();
@@ -48,7 +58,7 @@ export async function PUT(
       data: {
         title: title.trim(),
         content: content.trim(),
-        isPinned: isPinned === true,
+        isPinned: isAdmin ? isPinned === true : existing.isPinned,
       },
       include: {
         author: { select: { id: true, name: true, email: true } },
@@ -69,6 +79,7 @@ export async function DELETE(
   try {
     const authResult = await requireAuth();
     if (authResult.error) return authResult.error;
+    const { session, dbUser } = authResult;
 
     const { id } = await params;
     const noticeId = Number(id);
@@ -82,6 +93,15 @@ export async function DELETE(
 
     if (!existing) {
       return NextResponse.json({ error: '공지사항을 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    const isAdmin = dbUser.role === 'ADMIN';
+    const isAuthor = existing.authorId === Number(session.user.id);
+    if (!isAdmin && !isAuthor) {
+      return NextResponse.json(
+        { error: '본인이 작성한 공지사항만 삭제할 수 있습니다.' },
+        { status: 403 },
+      );
     }
 
     await prisma.notice.delete({ where: { id: noticeId } });

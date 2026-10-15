@@ -182,17 +182,19 @@ export async function PUT(
         );
       }
 
-      // Fetch all requests sharing the same bulkLabel if it exists, otherwise just this request
+      // Fetch all requests sharing the same bulkLabel + categoryId + description if it exists, otherwise just this request
       const existingBulkRequests = existingRequest.bulkLabel
         ? await prisma.activityRequest.findMany({
-            where: { bulkLabel: existingRequest.bulkLabel },
+            where: {
+              bulkLabel: existingRequest.bulkLabel,
+              categoryId: existingRequest.categoryId,
+              description: existingRequest.description,
+            },
           })
         : [existingRequest];
 
-      const dbUser = await prisma.user.findUnique({
-        where: { id: Number(session.user.id) },
-      });
-      const isAdmin = dbUser?.role === 'ADMIN';
+      const { dbUser } = authResult;
+      const isAdmin = dbUser.role === 'ADMIN';
 
       // GUARD: Check if any of the existing bulk requests have been APPROVED
       const hasApproved = existingBulkRequests.some(r => r.status === 'APPROVED');
@@ -217,7 +219,7 @@ export async function PUT(
 
       if (userIds.length >= 2) {
         const dateStr = finalActivityDate.toISOString().slice(0, 10);
-        newBulkLabel = `일괄신청_${dateStr}`;
+        newBulkLabel = existingRequest.bulkLabel || `일괄신청_${dateStr}_${Date.now().toString(36)}`;
       } else {
         newBulkLabel = null;
       }

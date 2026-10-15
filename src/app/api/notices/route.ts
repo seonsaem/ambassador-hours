@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   try {
     const authResult = await requireAuth();
     if (authResult.error) return authResult.error;
-    const { session } = authResult;
+    const { session, dbUser } = authResult;
 
     const body = await request.json();
     const { title, content, isPinned } = body;
@@ -64,11 +64,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const isAdmin = dbUser.role === 'ADMIN';
+
     const created = await prisma.notice.create({
       data: {
         title: title.trim(),
         content: content.trim(),
-        isPinned: isPinned === true,
+        isPinned: isAdmin ? isPinned === true : false,
         authorId: Number(session.user.id),
       },
       include: {

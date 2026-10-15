@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
@@ -34,10 +35,10 @@ export default function Navbar() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
-      setPushSupported(true);
-      
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker
+        .register('/sw.js')
         .then((reg) => {
+          setPushSupported(true);
           return reg.pushManager.getSubscription();
         })
         .then((sub) => {
@@ -67,7 +68,7 @@ export default function Navbar() {
 
     try {
       const reg = await navigator.serviceWorker.ready;
-      
+
       if (isSubscribed) {
         const sub = await reg.pushManager.getSubscription();
         if (sub) {
@@ -118,7 +119,6 @@ export default function Navbar() {
   const isAdmin = session?.user?.role === 'ADMIN';
   const navItems = isAdmin ? [...userNavItems, ...adminNavItems] : userNavItems;
 
-  // Close mobile nav when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -149,27 +149,15 @@ export default function Navbar() {
 
   if (status === 'loading') {
     return (
-      <div 
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '90%',
-          maxWidth: '1200px',
-          height: '60px',
-          background: 'rgba(10, 16, 30, 0.6)',
-          backdropFilter: 'blur(16px)',
-          borderRadius: '9999px',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}
-      >
-        <div style={{ width: 20, height: 20 }} className="loading-spinner-sm" role="status" aria-label="로딩 중" />
-      </div>
+      <header className="site-navbar">
+        <div className="site-navbar-inner">
+          <div className="site-navbar-brand">
+            <Image src="/logo-navy.png" alt="광운알리미" width={34} height={34} className="site-navbar-logo" />
+            <span>광운알리미</span>
+          </div>
+          <div className="loading-spinner-sm" role="status" aria-label="로딩 중" />
+        </div>
+      </header>
     );
   }
 
@@ -188,307 +176,151 @@ export default function Navbar() {
 
   return (
     <>
-      <nav 
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '90%',
-          maxWidth: '1200px',
-          background: 'rgba(10, 16, 30, 0.75)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '9999px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-          padding: '6px 12px 6px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 1000,
-          transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-        }}
-      >
-        {/* Desktop nav links */}
-        <ul 
-          className="nav-links-desktop"
-          style={{
-            listStyle: 'none',
-            margin: 0,
-            padding: 0,
-            gap: '6px',
-            alignItems: 'center'
-          }}
-        >
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  style={{
-                    display: 'block',
-                    padding: '8px 18px',
-                    borderRadius: '9999px',
-                    fontSize: '0.85rem',
-                    fontWeight: isActive ? 600 : 500,
-                    color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                    background: isActive ? 'rgba(255, 255, 255, 0.07)' : 'transparent',
-                    textDecoration: 'none',
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid transparent',
-                    boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.2)' : 'none',
-                    transition: 'all 300ms cubic-bezier(0.32, 0.72, 0, 1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = 'var(--text-primary)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = 'var(--text-muted)';
-                      e.currentTarget.style.background = 'transparent';
-                    }
-                  }}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <header className="site-navbar">
+        <div className="site-navbar-inner">
+          {/* Brand Logo */}
+          <Link href="/dashboard" className="site-navbar-brand">
+            <Image src="/logo-navy.png" alt="광운알리미" width={34} height={34} className="site-navbar-logo" priority />
+            <span>광운알리미</span>
+          </Link>
 
-        {/* Right section */}
-        <div 
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}
-        >
-          {pushSupported && (
-            <button
-              onClick={handlePushToggle}
-              title={isSubscribed ? '알림 끄기' : '알림 켜기'}
-              style={{
-                background: isSubscribed ? 'rgba(176, 154, 92, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                border: isSubscribed ? '1px solid rgba(176, 154, 92, 0.4)' : '1px solid rgba(255, 255, 255, 0.06)',
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: isSubscribed ? '#b09a5c' : 'var(--text-muted)',
-                fontSize: '0.9rem',
-                transition: 'all 200ms ease',
-                padding: 0,
-                flexShrink: 0
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)';
-                if (!isSubscribed) e.currentTarget.style.color = 'var(--text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'none';
-                if (!isSubscribed) e.currentTarget.style.color = 'var(--text-muted)';
-              }}
-            >
-              {isSubscribed ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
-                  <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
-                  <path d="M18 8a6 6 0 0 0-9.33-5" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              )}
+          {/* Desktop nav links */}
+          <ul className="nav-links-desktop">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`nav-item-link ${isActive ? 'is-active' : ''}`}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Right section */}
+          <div className="site-navbar-right">
+            {pushSupported && (
+              <button
+                onClick={handlePushToggle}
+                title={isSubscribed ? '알림 끄기' : '알림 켜기'}
+                className={`nav-icon-btn ${isSubscribed ? 'is-active' : ''}`}
+              >
+                {isSubscribed ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
+                    <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
+                    <path d="M18 8a6 6 0 0 0-9.33-5" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                )}
+              </button>
+            )}
+
+            {/* User profile chip */}
+            <div className="navbar-user-chip">
+              <div className="navbar-user-avatar">{userInitial}</div>
+              <span className="navbar-user-name">{session.user?.name}</span>
+            </div>
+
+            <button onClick={handleLogout} className="btn-logout">
+              로그아웃
             </button>
-          )}
 
-          {/* User profile chip */}
-          <div 
-            className="navbar-user"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              borderRadius: '9999px',
-              padding: '4px 14px 4px 6px',
-            }}
-          >
-            <div 
-              style={{
-                width: '26px',
-                height: '26px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #b09a5c 0%, #8e763f 100%)',
-                boxShadow: '0 2px 6px rgba(176,154,92,0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontWeight: 'bold',
-                fontSize: '0.8rem',
-                userSelect: 'none'
-              }}
+            {/* Hamburger for mobile */}
+            <button
+              className="hamburger"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              aria-label="메뉴 열기"
+              aria-expanded={mobileOpen}
             >
-              {userInitial}
-            </div>
-            <span 
-              style={{
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-              }}
-            >
-              {session.user?.name}
-            </span>
+              <div style={{ width: '16px', height: '12px', position: 'relative' }}>
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '1.75px',
+                    background: 'var(--text-primary)',
+                    borderRadius: '1px',
+                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                    transformOrigin: 'center',
+                    transform: mobileOpen ? 'translateY(5.1px) rotate(45deg)' : 'none',
+                  }}
+                />
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '5.1px',
+                    left: 0,
+                    width: '100%',
+                    height: '1.75px',
+                    background: 'var(--text-primary)',
+                    borderRadius: '1px',
+                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                    opacity: mobileOpen ? 0 : 1,
+                  }}
+                />
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '10.2px',
+                    left: 0,
+                    width: '100%',
+                    height: '1.75px',
+                    background: 'var(--text-primary)',
+                    borderRadius: '1px',
+                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                    transformOrigin: 'center',
+                    transform: mobileOpen ? 'translateY(-5.1px) rotate(-45deg)' : 'none',
+                  }}
+                />
+              </div>
+            </button>
           </div>
-
-          <button 
-            onClick={handleLogout} 
-            className="btn-logout"
-            style={{
-              background: 'transparent',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '9999px',
-              color: 'var(--text-muted)',
-              fontSize: '0.8rem',
-              fontWeight: 500,
-              padding: '6px 16px',
-              cursor: 'pointer',
-              transition: 'all 200ms ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-              e.currentTarget.style.color = '#ef4444';
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.03)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-              e.currentTarget.style.color = 'var(--text-muted)';
-              e.currentTarget.style.background = 'transparent';
-            }}
-          >
-            로그아웃
-          </button>
-
-          {/* Hamburger for mobile */}
-          <button
-            className="hamburger"
-            onClick={() => setMobileOpen((prev) => !prev)}
-            aria-label="메뉴 열기"
-            aria-expanded={mobileOpen}
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              position: 'relative',
-              zIndex: 1001,
-              flexShrink: 0
-            }}
-          >
-            <div 
-              style={{
-                width: '16px',
-                height: '12px',
-                position: 'relative'
-              }}
-            >
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '1.5px',
-                  background: 'var(--text-primary)',
-                  borderRadius: '1px',
-                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transformOrigin: 'center',
-                  transform: mobileOpen ? 'translateY(5.25px) rotate(45deg)' : 'none'
-                }}
-              />
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '5.25px',
-                  left: 0,
-                  width: '100%',
-                  height: '1.5px',
-                  background: 'var(--text-primary)',
-                  borderRadius: '1px',
-                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                  opacity: mobileOpen ? 0 : 1
-                }}
-              />
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '10.5px',
-                  left: 0,
-                  width: '100%',
-                  height: '1.5px',
-                  background: 'var(--text-primary)',
-                  borderRadius: '1px',
-                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transformOrigin: 'center',
-                  transform: mobileOpen ? 'translateY(-5.25px) rotate(-45deg)' : 'none'
-                }}
-              />
-            </div>
-          </button>
         </div>
-      </nav>
+      </header>
 
-      {/* Mobile nav - full-screen glass overlay */}
+      {/* Mobile Drawer */}
       <div
         ref={mobileNavRef}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          width: '100vw',
-          height: '100dvh',
-          background: 'rgba(5, 8, 16, 0.94)',
-          backdropFilter: 'blur(32px)',
-          zIndex: 999,
-          padding: '100px 32px 32px 32px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          opacity: mobileOpen ? 1 : 0,
-          pointerEvents: mobileOpen ? 'auto' : 'none',
-          transform: mobileOpen ? 'translateY(0)' : 'translateY(-20px)',
-          transition: 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-        }}
+        className={`mobile-drawer ${mobileOpen ? 'is-open' : ''}`}
       >
-        <div 
-          style={{ 
-            padding: 'var(--space-md) var(--space-md) var(--space-sm) var(--space-md)', 
-            borderBottom: '1px solid rgba(255, 255, 255, 0.05)', 
-            marginBottom: 'var(--space-md)' 
+        <div
+          style={{
+            padding: '16px',
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>로그인된 사용자</span>
-          <strong style={{ fontSize: '1.25rem', color: 'var(--text-primary)', display: 'block', marginTop: '4px' }}>{session.user?.name}</strong>
+          <div className="navbar-user-avatar" style={{ width: '36px', height: '36px', fontSize: '0.9rem' }}>
+            {userInitial}
+          </div>
+          <div>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block', fontWeight: 500 }}>
+              로그인된 계정
+            </span>
+            <strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)', display: 'block' }}>
+              {session.user?.name}
+            </strong>
+          </div>
         </div>
-        
+
         {pushSupported && (
           <button
             onClick={handlePushToggle}
@@ -498,88 +330,56 @@ export default function Navbar() {
               justifyContent: 'space-between',
               padding: '12px 16px',
               borderRadius: 'var(--radius-md)',
-              background: isSubscribed ? 'rgba(176, 154, 92, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-              border: isSubscribed ? '1px solid rgba(176, 154, 92, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
-              color: isSubscribed ? '#b09a5c' : 'var(--text-muted)',
-              fontSize: '1rem',
-              fontWeight: 500,
+              background: isSubscribed ? '#eff6ff' : 'var(--bg-primary)',
+              border: isSubscribed ? '1px solid #bfdbfe' : '1px solid var(--border-subtle)',
+              color: isSubscribed ? '#1e40af' : 'var(--text-secondary)',
+              fontSize: '0.92rem',
+              fontWeight: 600,
               cursor: 'pointer',
               width: '100%',
               textAlign: 'left',
-              transition: 'all 200ms ease',
-              marginBottom: '12px'
+              marginBottom: '8px',
             }}
           >
             <span>푸시 알림 수신 설정</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {isSubscribed ? (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                  </svg>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>켜짐</span>
-                </>
-              ) : (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
-                    <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
-                    <path d="M18 8a6 6 0 0 0-9.33-5" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>꺼짐</span>
-                </>
-              )}
-            </div>
+            <span style={{ fontSize: '0.84rem', fontWeight: 700 }}>
+              {isSubscribed ? '켜짐' : '꺼짐'}
+            </span>
           </button>
         )}
 
-        {navItems.map((item, idx) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                display: 'block',
-                padding: '12px 16px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '1.1rem',
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                background: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-                textDecoration: 'none',
-                opacity: mobileOpen ? 1 : 0,
-                transform: mobileOpen ? 'translateY(0)' : 'translateY(12px)',
-                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                transitionDelay: `${(idx + 1) * 0.05}s`
-              }}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  display: 'block',
+                  padding: '13px 16px',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '1rem',
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                  background: isActive ? 'var(--bg-tertiary)' : 'transparent',
+                  textDecoration: 'none',
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+
         <button
-          onClick={() => { setMobileOpen(false); handleLogout(); }}
-          style={{
-            marginTop: 'var(--space-xl)',
-            padding: '14px',
-            borderRadius: 'var(--radius-md)',
-            background: 'rgba(239, 68, 68, 0.05)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
-            color: '#ef4444',
-            fontWeight: 600,
-            fontSize: '1rem',
-            cursor: 'pointer',
-            opacity: mobileOpen ? 1 : 0,
-            transform: mobileOpen ? 'translateY(0)' : 'translateY(12px)',
-            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            transitionDelay: `${(navItems.length + 1) * 0.05}s`
+          onClick={() => {
+            setMobileOpen(false);
+            handleLogout();
           }}
+          className="btn btn-outline-danger btn-full"
+          style={{ marginTop: 'auto', padding: '13px' }}
         >
           로그아웃
         </button>

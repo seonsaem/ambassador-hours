@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
       appliedHours = reqAppliedHours;
     }
 
-    // Generate bulk label if not provided
-    const label = bulkLabel?.trim() || `일괄신청_${new Date().toISOString().slice(0, 10)}`;
+    // Generate unique bulk label if not provided
+    const label = bulkLabel?.trim() || `일괄신청_${new Date().toISOString().slice(0, 10)}_${Date.now().toString(36)}`;
 
     // Create all requests in a transaction (status: PENDING for approval queue)
     const created = await prisma.$transaction(
@@ -106,6 +106,28 @@ export async function POST(request: NextRequest) {
         }),
       ),
     );
+
+    // Notify administrators about the new bulk request
+    try {
+      const admins = await prisma.user.findMany({
+        where: { role: 'ADMIN' },
+        select: { id: true },
+      });
+      const applicantName = session.user.name || '홍보대사';
+      const { sendPushNotification } = await import('@/lib/push');
+      const pushPromises = admins.map((admin) =>
+        sendPushNotification(admin.id, {
+          title: '[통합 활동 신청]',
+          body: `${applicantName}님이 '${category.categoryName}' (${created.length}명) 통합 신청을 제출했습니다.`,
+          url: '/admin',
+        })
+      );
+      Promise.all(pushPromises).catch((err) =>
+        console.error('[WebPush] Error pushing bulk request to admins:', err)
+      );
+    } catch (pushErr) {
+      console.error('[WebPush] Bulk notice trigger failed:', pushErr);
+    }
 
     return NextResponse.json(
       {

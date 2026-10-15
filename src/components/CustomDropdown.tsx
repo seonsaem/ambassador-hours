@@ -28,7 +28,6 @@ export default function CustomDropdown({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -41,12 +40,11 @@ export default function CustomDropdown({
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
 
-  // Grouping logic for Autonomous categories
   const officialCategories = categories.filter((c) => c.activityType === 'OFFICIAL');
   const autonomousCategories = categories.filter((c) => c.activityType === 'AUTONOMOUS');
-  
+
   const departmentsOrder = ['기타 자율', ...DEPARTMENTS];
-  
+
   const groupedAutonomous: { [key: string]: Category[] } = {};
   autonomousCategories.forEach((cat) => {
     const dept = cat.department || '기타 자율';
@@ -70,68 +68,49 @@ export default function CustomDropdown({
       <button
         type="button"
         onClick={() => !disabled && setDropdownOpen((prev) => !prev)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '12px 16px',
-          background: 'rgba(5,5,8,0.3)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          borderRadius: 'var(--radius-md)',
-          color: categoryId ? 'var(--text-primary)' : 'var(--text-muted)',
-          fontSize: '0.9rem',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          textAlign: 'left',
-          transition: 'all 200ms ease',
-        }}
+        disabled={disabled}
+        className={`custom-dropdown-trigger ${!categoryId ? 'is-placeholder' : ''}`}
       >
-        <span>
-          {selectedCategory ? selectedCategory.categoryName : '카테고리를 선택하세요'}
-        </span>
         <span
           style={{
-            fontSize: '0.6rem',
+            minWidth: 0,
+            flex: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            marginRight: '8px',
+          }}
+        >
+          {selectedCategory ? selectedCategory.categoryName : '카테고리를 선택하세요'}
+        </span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
             transition: 'transform 200ms ease',
             transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
             color: 'var(--text-muted)',
+            flexShrink: 0,
           }}
         >
-          ▼
-        </span>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </button>
 
       {dropdownOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: 0,
-            width: '100%',
-            background: 'rgba(10, 16, 30, 0.96)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.6)',
-            zIndex: 1000,
-            maxHeight: '300px',
-            overflowY: 'auto',
-            padding: '6px',
-            animation: 'slideDown 0.2s var(--ease-out-expo)',
-          }}
-        >
+        <div className="custom-dropdown-menu">
           {/* 공식 활동 그룹 */}
           {officialCategories.length > 0 && (
-            <div style={{ marginBottom: '8px' }}>
+            <div style={{ marginBottom: '6px' }}>
               <div
-                style={{
-                  padding: '8px 12px 4px 12px',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  color: '#8b5cf6', // Purple color for OFFICIAL theme
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
+                className="custom-dropdown-group-label"
+                style={{ color: '#1e40af' }}
               >
                 공식 활동
               </div>
@@ -145,32 +124,21 @@ export default function CustomDropdown({
                       setCategoryId(cat.id);
                       setDropdownOpen(false);
                     }}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '8px 14px',
-                      background: isCurrent ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
-                      color: isCurrent ? '#a78bfa' : 'var(--text-primary)',
-                      border: 0,
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.85rem',
-                      fontWeight: isCurrent ? 600 : 500,
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      transition: 'all 150ms ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isCurrent) e.currentTarget.style.background = 'transparent';
-                    }}
+                    className={`custom-dropdown-item ${isCurrent ? 'is-selected' : ''}`}
                   >
-                    <span>{cat.categoryName}</span>
-                    <span style={{ fontSize: '0.7rem', color: isCurrent ? '#a78bfa' : 'var(--text-muted)', opacity: 0.8 }}>
-                      {cat.assignedHours}시간
+                    <span style={{ minWidth: 0, flex: 1, paddingRight: '10px', wordBreak: 'keep-all', overflowWrap: 'break-word' }}>
+                      {cat.categoryName}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.74rem',
+                        color: isCurrent ? '#1e40af' : 'var(--text-muted)',
+                        fontWeight: 600,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {cat.assignedHours === 0 ? '가변' : `${cat.assignedHours}시간`}
                     </span>
                   </button>
                 );
@@ -182,15 +150,11 @@ export default function CustomDropdown({
           {autonomousCategories.length > 0 && (
             <>
               <div
+                className="custom-dropdown-group-label"
                 style={{
-                  padding: '8px 12px 4px 12px',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  color: '#b09a5c', // Gold/Teal theme for AUTONOMOUS
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  borderTop: '1px solid rgba(255,255,255,0.05)',
-                  paddingTop: '8px',
+                  color: '#0f766e',
+                  borderTop: officialCategories.length > 0 ? '1px solid var(--border-subtle)' : 'none',
+                  paddingTop: '10px',
                   marginTop: '4px',
                 }}
               >
@@ -198,21 +162,16 @@ export default function CustomDropdown({
               </div>
               {sortedDepts.map((dept) => (
                 <div key={dept} style={{ marginBottom: '6px' }}>
-                  {/* 부서 소제목 */}
                   <div
                     style={{
                       padding: '4px 12px 2px 14px',
-                      fontSize: '0.68rem',
+                      fontSize: '0.72rem',
                       fontWeight: 600,
                       color: 'var(--text-muted)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.02em',
-                      opacity: 0.7,
                     }}
                   >
                     • {dept}
                   </div>
-                  {/* 부서별 카테고리 버튼 목록 */}
                   {groupedAutonomous[dept].map((cat) => {
                     const isCurrent = cat.id === categoryId;
                     return (
@@ -223,31 +182,21 @@ export default function CustomDropdown({
                           setCategoryId(cat.id);
                           setDropdownOpen(false);
                         }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '8px 14px 8px 24px', // 부서 밑으로 들여쓰기
-                          background: isCurrent ? 'rgba(176,154,92,0.1)' : 'transparent',
-                          color: isCurrent ? '#b09a5c' : 'var(--text-primary)',
-                          border: 0,
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.85rem',
-                          fontWeight: isCurrent ? 600 : 500,
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          transition: 'all 150ms ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isCurrent) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isCurrent) e.currentTarget.style.background = 'transparent';
-                        }}
+                        className={`custom-dropdown-item ${isCurrent ? 'is-selected' : ''}`}
+                        style={{ paddingLeft: '24px' }}
                       >
-                        <span>{cat.categoryName}</span>
-                        <span style={{ fontSize: '0.7rem', color: isCurrent ? '#b09a5c' : 'var(--text-muted)', opacity: 0.8 }}>
+                        <span style={{ minWidth: 0, flex: 1, paddingRight: '10px', wordBreak: 'keep-all', overflowWrap: 'break-word' }}>
+                          {cat.categoryName}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '0.74rem',
+                            color: isCurrent ? '#1e40af' : 'var(--text-muted)',
+                            fontWeight: 600,
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {cat.assignedHours === 0 ? '가변' : `${cat.assignedHours}시간`}
                         </span>
                       </button>

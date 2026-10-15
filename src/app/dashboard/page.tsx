@@ -10,6 +10,7 @@ import Modal from '@/components/Modal';
 import CustomDropdown from '@/components/CustomDropdown';
 import DashboardRequestCard from '@/components/DashboardRequestCard';
 import NoticeBoard from '@/components/NoticeBoard';
+import StatusBadge from '@/components/StatusBadge';
 import DeleteVerificationModal from '@/components/DeleteVerificationModal';
 import type { Category, User, Request, GroupedRequest } from '@/types';
 
@@ -19,6 +20,10 @@ export default function DashboardPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Metric card personal breakdown & request filter state
+  const [selectedMetric, setSelectedMetric] = useState<'OFFICIAL' | 'AUTONOMOUS' | 'ALL' | null>(null);
+  const [metricStatusFilter, setMetricStatusFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
 
   // Expanded descriptions
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
@@ -377,23 +382,315 @@ export default function DashboardPage() {
         )}
 
         {/* Metric Cards */}
-        <div className="grid-metrics">
-          <MetricCard
-            title="공식 활동 시간"
-            value={officialHours}
-            gradient="purple"
-          />
-          <MetricCard
-            title="자율 활동 시간"
-            value={autonomousHours}
-            gradient="teal"
-          />
-          <MetricCard
-            title="총 활동 시간"
-            value={totalHours}
-            gradient="gold"
-          />
-        </div>
+        {(() => {
+          const myRequests = requests.filter((r) => r.userId === currentUserId);
+          const myOfficialRequests = myRequests.filter((r) => r.activityType === 'OFFICIAL');
+          const myAutonomousRequests = myRequests.filter((r) => r.activityType === 'AUTONOMOUS');
+
+          const handleMetricToggle = (metric: 'OFFICIAL' | 'AUTONOMOUS' | 'ALL') => {
+            setSelectedMetric((prev) => (prev === metric ? null : metric));
+            setMetricStatusFilter('ALL');
+          };
+
+          const activeRequestsForMetric =
+            selectedMetric === 'OFFICIAL'
+              ? myOfficialRequests
+              : selectedMetric === 'AUTONOMOUS'
+              ? myAutonomousRequests
+              : myRequests;
+
+          const filteredPersonalRequests = activeRequestsForMetric.filter((r) =>
+            metricStatusFilter === 'ALL' ? true : r.status === metricStatusFilter
+          );
+
+          // Category breakdown for APPROVED personal requests in the selected metric
+          const categoryMap = new Map<
+            number,
+            { categoryId: number; categoryName: string; activityType: string; hours: number; count: number }
+          >();
+          activeRequestsForMetric
+            .filter((r) => r.status === 'APPROVED')
+            .forEach((r) => {
+              const catId = r.category?.id ?? 0;
+              const existing = categoryMap.get(catId);
+              if (existing) {
+                existing.hours += r.appliedHours || 0;
+                existing.count += 1;
+              } else {
+                categoryMap.set(catId, {
+                  categoryId: catId,
+                  categoryName: r.category?.categoryName || '기타',
+                  activityType: r.activityType || 'OFFICIAL',
+                  hours: r.appliedHours || 0,
+                  count: 1,
+                });
+              }
+            });
+          const myCategoryBreakdown = Array.from(categoryMap.values()).sort((a, b) => b.hours - a.hours);
+          const maxCatHours = myCategoryBreakdown.length > 0 ? Math.max(...myCategoryBreakdown.map((b) => b.hours)) : 1;
+
+          const panelTitle =
+            selectedMetric === 'OFFICIAL'
+              ? '내 공식 활동 신청 내역'
+              : selectedMetric === 'AUTONOMOUS'
+              ? '내 자율 활동 신청 내역'
+              : '내 전체 활동 신청 내역';
+
+          return (
+            <>
+              <div className="grid-metrics">
+                <MetricCard
+                  title="공식 활동 시간"
+                  value={officialHours}
+                  gradient="purple"
+                  count={myOfficialRequests.length}
+                  isActive={selectedMetric === 'OFFICIAL'}
+                  onClick={() => handleMetricToggle('OFFICIAL')}
+                />
+                <MetricCard
+                  title="자율 활동 시간"
+                  value={autonomousHours}
+                  gradient="teal"
+                  count={myAutonomousRequests.length}
+                  isActive={selectedMetric === 'AUTONOMOUS'}
+                  onClick={() => handleMetricToggle('AUTONOMOUS')}
+                />
+                <MetricCard
+                  title="총 활동 시간"
+                  value={totalHours}
+                  gradient="gold"
+                  count={myRequests.length}
+                  isActive={selectedMetric === 'ALL'}
+                  onClick={() => handleMetricToggle('ALL')}
+                />
+              </div>
+
+              {selectedMetric && (
+                <div className="my-activity-panel">
+                  <div className="my-activity-panel-header">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <h3 className="card-title" style={{ marginBottom: 0, fontSize: '1.05rem' }}>
+                        {panelTitle}
+                      </h3>
+                      <span className="badge badge-outline">
+                        총 {activeRequestsForMetric.length}건
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <div className="category-filter-pills">
+                        {(
+                          [
+                            { key: 'ALL', label: `전체 (${activeRequestsForMetric.length})` },
+                            {
+                              key: 'APPROVED',
+                              label: `승인됨 (${activeRequestsForMetric.filter((r) => r.status === 'APPROVED').length})`,
+                            },
+                            {
+                              key: 'PENDING',
+                              label: `대기중 (${activeRequestsForMetric.filter((r) => r.status === 'PENDING').length})`,
+                            },
+                            {
+                              key: 'REJECTED',
+                              label: `반려됨 (${activeRequestsForMetric.filter((r) => r.status === 'REJECTED').length})`,
+                            },
+                          ] as const
+                        ).map((tab) => (
+                          <button
+                            key={tab.key}
+                            type="button"
+                            onClick={() => setMetricStatusFilter(tab.key)}
+                            className={`category-filter-pill ${metricStatusFilter === tab.key ? 'is-active' : ''}`}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setSelectedMetric(null)}
+                        aria-label="상세 내역 닫기"
+                      >
+                        ✕ 닫기
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Category Breakdown Bars (for approved hours) */}
+                  {myCategoryBreakdown.length > 0 && (
+                    <div
+                      style={{
+                        background: 'var(--bg-primary)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '14px 18px',
+                        marginBottom: '16px',
+                      }}
+                    >
+                      <div className="user-breakdown-title" style={{ marginBottom: '10px' }}>
+                        📊 카테고리별 승인 시간 요약
+                      </div>
+                      <div className="user-breakdown-list">
+                        {myCategoryBreakdown.map((cat) => (
+                          <div key={cat.categoryId} className="user-breakdown-row">
+                            <span className="user-breakdown-label" title={cat.categoryName}>
+                              {cat.categoryName}
+                            </span>
+                            <span
+                              className={`badge ${cat.activityType === 'OFFICIAL' ? 'badge-purple' : 'badge-teal'}`}
+                              style={{ fontSize: '0.68rem', flexShrink: 0, minWidth: '38px', justifyContent: 'center' }}
+                            >
+                              {cat.activityType === 'OFFICIAL' ? '공식' : '자율'}
+                            </span>
+                            <div className="user-breakdown-track">
+                              <div
+                                className={`user-breakdown-fill ${
+                                  cat.activityType === 'OFFICIAL' ? 'fill-official' : 'fill-autonomous'
+                                }`}
+                                style={{ width: `${(cat.hours / maxCatHours) * 100}%` }}
+                              />
+                            </div>
+                            <span className="user-breakdown-hours">{cat.hours.toFixed(1)}h</span>
+                            <span className="user-breakdown-count">({cat.count}건)</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Personal Request List */}
+                  {filteredPersonalRequests.length === 0 ? (
+                    <div
+                      style={{
+                        padding: '28px 16px',
+                        textAlign: 'center',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.9rem',
+                        background: 'var(--bg-primary)',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--border-subtle)',
+                      }}
+                    >
+                      해당 조건의 본인 활동 신청 내역이 없습니다.
+                    </div>
+                  ) : (
+                    <div className="my-activity-item-list">
+                      {filteredPersonalRequests.map((req) => (
+                        <div key={req.id} className="my-activity-item-row">
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 260px', minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                              <StatusBadge status={req.status} />
+                              {getActivityBadge(req.activityType)}
+                              {req.category?.department && (
+                                <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>
+                                  {req.category.department}
+                                </span>
+                              )}
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  fontSize: '0.92rem',
+                                  color: 'var(--text-primary)',
+                                  wordBreak: 'keep-all',
+                                }}
+                              >
+                                {req.category?.categoryName}
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '0.86rem',
+                                color: 'var(--text-secondary)',
+                                wordBreak: 'break-all',
+                                whiteSpace: 'pre-wrap',
+                              }}
+                            >
+                              {req.description}
+                            </div>
+                            {req.status === 'REJECTED' && req.rejectedReason && (
+                              <div
+                                style={{
+                                  fontSize: '0.8rem',
+                                  color: 'var(--danger-light)',
+                                  background: 'var(--danger-bg)',
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  borderLeft: '2px solid var(--danger)',
+                                  marginTop: '2px',
+                                }}
+                              >
+                                <strong>반려 사유:</strong> {req.rejectedReason}
+                              </div>
+                            )}
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              flexShrink: 0,
+                              marginLeft: 'auto',
+                            }}
+                          >
+                            {req.evidenceFileUrl && (
+                              <a
+                                href={req.evidenceFileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="evidence-link"
+                              >
+                                📎 증빙
+                              </a>
+                            )}
+                            <div style={{ textAlign: 'right' }}>
+                              <div
+                                style={{
+                                  fontFamily: 'var(--font-display)',
+                                  fontWeight: 800,
+                                  fontSize: '0.98rem',
+                                  color: 'var(--primary)',
+                                  fontVariantNumeric: 'tabular-nums',
+                                }}
+                              >
+                                {req.appliedHours}시간
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                {formatDate(req.activityDate || req.createdAt)}
+                              </div>
+                            </div>
+
+                            {(req.status === 'PENDING' || req.status === 'REJECTED') && (
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <button
+                                  type="button"
+                                  className="btn btn-outline btn-sm"
+                                  style={{ padding: '4px 9px', fontSize: '0.75rem' }}
+                                  onClick={() => openEditModal(req)}
+                                >
+                                  수정
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-outline-danger btn-sm"
+                                  style={{ padding: '4px 9px', fontSize: '0.75rem' }}
+                                  onClick={() => handleDeleteClick(req.id)}
+                                >
+                                  삭제
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* Notice Board */}
         <NoticeBoard />
@@ -496,7 +793,6 @@ export default function DashboardPage() {
                           onChange={(e) => setEditCustomHours(parseFloat(e.target.value) || 0)}
                           required
                           disabled={editLoading}
-                          style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
                         />
                       </div>
                     </div>
@@ -523,7 +819,6 @@ export default function DashboardPage() {
                 onChange={(e) => setEditActivityDate(e.target.value)}
                 required
                 disabled={editLoading}
-                style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
               />
             </div>
 
@@ -531,45 +826,13 @@ export default function DashboardPage() {
             {editModal && (
               <div className="form-group">
                 <label className="form-label">신청 인원 수정</label>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-                  gap: 'var(--space-sm)',
-                  maxHeight: '280px',
-                  overflowY: 'auto',
-                  padding: '6px'
-                }}>
+                <div className="bulk-user-grid" style={{ maxHeight: '280px' }}>
                   {activeUsers.map((u) => {
                     const isSelected = editUserIds.includes(u.id);
                     return (
                       <label
                         key={u.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '10px',
-                          padding: '10px 12px',
-                          background: isSelected ? 'rgba(176,154,92,0.06)' : 'rgba(255,255,255,0.02)',
-                          border: isSelected ? '1px solid rgba(176,154,92,0.4)' : '1px solid rgba(255,255,255,0.04)',
-                          borderRadius: 'var(--radius-md)',
-                          cursor: 'pointer',
-                          boxShadow: isSelected ? '0 0 12px rgba(176,154,92,0.08)' : 'none',
-                          transition: 'all 250ms cubic-bezier(0.32, 0.72, 0, 1)'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                          }
-                        }}
+                        className={`bulk-user-item ${isSelected ? 'bulk-user-selected' : ''}`}
                       >
                         <input
                           type="checkbox"
@@ -577,13 +840,12 @@ export default function DashboardPage() {
                           onChange={() => handleUserCheckToggle(u.id)}
                           disabled={editLoading}
                           className="bulk-user-checkbox"
-                          style={{ marginTop: '3px' }}
                         />
-                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isSelected ? '#b09a5c' : 'var(--text-primary)', transition: 'color 0.2s' }}>
+                        <div className="bulk-user-info">
+                          <span className="bulk-user-name">
                             {u.name}
                           </span>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span className="bulk-user-email">
                             {(u as User).email || ''}
                           </span>
                         </div>

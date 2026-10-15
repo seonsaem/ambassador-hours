@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/guards';
 import { prisma } from '@/lib/prisma';
 import path from 'path';
-import fs from 'fs';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
@@ -58,26 +57,16 @@ export async function POST(request: NextRequest) {
 
     const verifiedMimeType = isPng ? 'image/png' : isJpg ? 'image/jpeg' : 'application/pdf';
 
-    // Generate filename
+    // Generate safe filename
     const ext = path.extname(file.name) || (isPng ? '.png' : isJpg ? '.jpg' : '.pdf');
     const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
 
-    // Create uploads directory if not exists
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // Write file to local storage
-    const filePath = path.join(uploadDir, filename);
-    await fs.promises.writeFile(filePath, buffer);
-
-    // Save metadata to database
+    // Store Base64 in database for full serverless (Vercel) persistence
     const fileRecord = await prisma.fileStore.create({
       data: {
         filename,
         mimeType: verifiedMimeType,
-        data: `uploads/${filename}`,
+        data: buffer.toString('base64'),
         uploadedById: Number(session.user.id),
       },
     });

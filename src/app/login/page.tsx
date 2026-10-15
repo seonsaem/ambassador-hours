@@ -63,13 +63,15 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <Image src="/logo-gold.png" alt="광운알리미 로고" className="auth-logo" width={400} height={400} priority />
+          <Image src="/logo-navy.png" alt="광운알리미 로고" className="auth-logo" width={120} height={120} priority />
+          <h1 className="auth-title">광운알리미</h1>
+          <p className="auth-subtitle">입학전형 홍보대사 활동 시간 관리 시스템</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
           {error && (
             <div className="alert alert-error" role="alert" aria-live="polite">
-              <span className="alert-icon" aria-hidden="true">⚠️</span>
+              <span className="alert-icon" aria-hidden="true">!</span>
               {error}
             </div>
           )}
@@ -125,6 +127,11 @@ export default function LoginPage() {
             아직 계정이 없으신가요?{' '}
             <Link href="/signup" className="auth-link">
               회원가입
+            </Link>
+          </p>
+          <p style={{ marginTop: '12px' }}>
+            <Link href="/forgot-password" style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              비밀번호를 잃어버리셨나요?
             </Link>
           </p>
         </div>

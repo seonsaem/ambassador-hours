@@ -40,3 +40,4 @@ prisma/dev.db-journal
 uploads/
 
 .vercel
+*.tsbuildinfo

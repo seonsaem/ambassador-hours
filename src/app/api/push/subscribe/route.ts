@@ -51,6 +51,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const authResult = await requireAuth();
     if (authResult.error) return authResult.error;
+    const { session } = authResult;
+    const userId = Number(session.user.id);
 
     const body = await request.json();
     const { endpoint } = body;
@@ -60,7 +62,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.pushSubscription.deleteMany({
-      where: { endpoint },
+      where: { endpoint, userId },
     });
 
     return NextResponse.json({ success: true });

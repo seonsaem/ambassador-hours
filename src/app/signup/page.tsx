@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -62,14 +63,15 @@ export default function SignupPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header auth-header-signup">
-          <h1 className="auth-title gradient-text">회원가입</h1>
+          <Image src="/logo-navy.png" alt="광운알리미 로고" className="auth-logo" width={96} height={96} priority />
+          <h1 className="auth-title">회원가입</h1>
           <p className="auth-subtitle">초대받은 이메일로 가입하세요</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
           {error && (
             <div className="alert alert-error" role="alert" aria-live="polite">
-              <span className="alert-icon" aria-hidden="true">⚠️</span>
+              <span className="alert-icon" aria-hidden="true">!</span>
               {error}
             </div>
           )}

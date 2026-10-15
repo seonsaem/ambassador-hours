@@ -8,7 +8,7 @@ import AdminRequestCard from '@/components/AdminRequestCard';
 import DeleteVerificationModal from '@/components/DeleteVerificationModal';
 import RejectModal from '@/components/RejectModal';
 import AdminGroupBody from '@/components/AdminGroupBody';
-import type { User, Category, Request, GroupedRequest } from '@/types';
+import type { User, Request, GroupedRequest } from '@/types';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -239,24 +239,46 @@ export default function AdminPage() {
       <Navbar />
       <div className="container">
         <div className="page-header">
-          <h1 className="page-title">승인 대기열</h1>
+          <div>
+            <h1 className="page-title">승인 대기열</h1>
+            <p className="text-secondary" style={{ fontSize: '0.875rem', marginTop: '4px' }}>
+              홍보대사 활동 신청 내역을 검토하고 승인 또는 반려합니다.
+            </p>
+          </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button className="btn btn-outline" onClick={() => { setLoading(true); fetchData(); }}>
-              🔄 새로고침
+            <button className="btn btn-outline btn-sm" onClick={() => { setLoading(true); fetchData(); }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+              새로고침
             </button>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          {(['PENDING', 'APPROVED', 'REJECTED'] as const).map(s => (
-            <button
-              key={s}
-              onClick={() => setFilterStatus(s)}
-              className={`btn ${filterStatus === s ? 'btn-primary' : 'btn-outline'}`}
-            >
-              {s === 'PENDING' ? '대기중' : s === 'APPROVED' ? '승인됨' : '반려됨'}
-            </button>
-          ))}
+        <div className="segmented-control" style={{ marginBottom: '1.5rem' }}>
+          {(['PENDING', 'APPROVED', 'REJECTED'] as const).map(s => {
+            const count = requests.filter(r => r.status === s).length;
+            return (
+              <button
+                key={s}
+                onClick={() => setFilterStatus(s)}
+                className={`segmented-btn ${filterStatus === s ? 'segmented-btn-active' : ''}`}
+              >
+                {s === 'PENDING' ? '대기중' : s === 'APPROVED' ? '승인됨' : '반려됨'}
+                <span style={{
+                  marginLeft: '6px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: filterStatus === s ? 'var(--accent)' : 'var(--text-muted)',
+                  fontVariantNumeric: 'tabular-nums'
+                }}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {error && (

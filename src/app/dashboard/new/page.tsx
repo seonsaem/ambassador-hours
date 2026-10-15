@@ -230,7 +230,6 @@ export default function NewRequestPage() {
                         onChange={(e) => setCustomHours(parseFloat(e.target.value) || 0)}
                         required
                         disabled={loading}
-                        style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
                       />
                     </div>
                   </div>
@@ -267,7 +266,7 @@ export default function NewRequestPage() {
                 }}
                 disabled={loading}
                 required
-                style={{ background: 'rgba(5,5,8,0.3)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}
+                style={{ cursor: 'pointer' }}
               />
             </div>
 

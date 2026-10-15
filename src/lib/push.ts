@@ -43,11 +43,12 @@ export async function sendPushNotification(userId: number, payload: PushPayload)
         };
 
         await webpush.sendNotification(pushSubscription, JSON.stringify(payload));
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`[WebPush] Failed to send notification to subscription ID ${sub.id}:`, error);
         
         // Remove subscription from DB if it is expired or no longer exists (404/410)
-        if (error.statusCode === 410 || error.statusCode === 404) {
+        const statusCode = (error as { statusCode?: number })?.statusCode;
+        if (statusCode === 410 || statusCode === 404) {
           console.log(`[WebPush] Deleting expired subscription ID ${sub.id}`);
           await prisma.pushSubscription.delete({
             where: { id: sub.id },
@@ -82,10 +83,11 @@ export async function sendPushToAllUsers(payload: PushPayload) {
         };
 
         await webpush.sendNotification(pushSubscription, JSON.stringify(payload));
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`[WebPush] Failed to send notification to subscription ID ${sub.id}:`, error);
         
-        if (error.statusCode === 410 || error.statusCode === 404) {
+        const statusCode = (error as { statusCode?: number })?.statusCode;
+        if (statusCode === 410 || statusCode === 404) {
           console.log(`[WebPush] Deleting expired subscription ID ${sub.id}`);
           await prisma.pushSubscription.delete({
             where: { id: sub.id },

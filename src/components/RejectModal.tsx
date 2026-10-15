@@ -24,7 +24,7 @@ export default function RejectModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal glass-card" onClick={(e) => e.stopPropagation()}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 className="modal-title">요청 반려</h3>
           <button className="modal-close" onClick={onClose} aria-label="모달 닫기">✕</button>
@@ -41,8 +41,8 @@ export default function RejectModal({
               </p>
             )}
           </div>
-          <div className="form-group" style={{ marginTop: '1rem' }}>
-            <label htmlFor="rejectReason" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+          <div className="form-group" style={{ marginTop: '1rem', marginBottom: 0 }}>
+            <label htmlFor="rejectReason" className="form-label">
               반려 사유 (필수)
             </label>
             <textarea
@@ -53,18 +53,6 @@ export default function RejectModal({
               placeholder="반려 사유를 상세하게 입력해주세요…"
               rows={3}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                background: 'rgba(0, 0, 0, 0.2)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--text-primary)',
-                fontFamily: 'inherit',
-                fontSize: '0.9rem',
-                outline: 'none',
-                resize: 'vertical'
-              }}
             />
           </div>
         </div>

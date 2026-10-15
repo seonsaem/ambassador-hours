@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Request, User } from '@/types';
+import type { Request } from '@/types';
 
 interface AdminGroupBodyProps {
   requests: Request[];
@@ -23,7 +23,7 @@ export default function AdminGroupBody({
   return (
     <div className="user-group-body">
       {requests.length === 0 ? (
-        <p className="empty-state-text" style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0, textAlign: 'center', padding: 'var(--space-md)' }}>
+        <p className="empty-state-text" style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0, textAlign: 'center', padding: 'var(--space-md)' }}>
           {filterStatus === 'APPROVED' ? '승인된 활동 내역이 없습니다.' : '반려된 활동 내역이 없습니다.'}
         </p>
       ) : (
@@ -45,24 +45,33 @@ export default function AdminGroupBody({
                 </div>
                 <span className="request-date">활동일: {formatDateOnly(req.activityDate || req.createdAt)}</span>
               </div>
-              <p className="user-group-item-desc" style={{
-                margin: '0 0 var(--space-sm) 0',
-                ...(!expanded.has(req.id) ? {
-                  display: '-webkit-box',
-                  WebkitLineClamp: 1,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'pre-wrap'
-                } : {
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-all'
-                })
-              }}>
+              <p
+                className="user-group-item-desc"
+                style={{
+                  margin: '0 0 var(--space-xs) 0',
+                  ...(!expanded.has(req.id)
+                    ? {
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'pre-wrap',
+                      }
+                    : {
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-all',
+                      }),
+                }}
+              >
                 {req.description}
               </p>
               {req.description.length > 40 && (
-                <button className="btn-text" onClick={() => toggleExpand(req.id)} style={{ color: '#b09a5c', fontWeight: 600, fontSize: '0.8rem', marginBottom: 'var(--space-sm)', display: 'inline-block' }}>
+                <button
+                  className="btn-text"
+                  onClick={() => toggleExpand(req.id)}
+                  style={{ fontSize: '0.8rem', marginBottom: 'var(--space-xs)', display: 'inline-block' }}
+                >
                   {expanded.has(req.id) ? '간략히 보기' : '자세히 보기'}
                 </button>
               )}
@@ -70,8 +79,8 @@ export default function AdminGroupBody({
                 <p className="user-group-item-reason">반려 사유: {req.rejectedReason}</p>
               )}
               {req.evidenceFileUrl && (
-                <a href={req.evidenceFileUrl} target="_blank" rel="noopener noreferrer" className="evidence-link" style={{ fontSize: '0.8rem' }}>
-                  📎 증빙 파일
+                <a href={req.evidenceFileUrl} target="_blank" rel="noopener noreferrer" className="evidence-link" style={{ fontSize: '0.78rem' }}>
+                  증빙 파일
                 </a>
               )}
               <div className="user-group-item-actions">
